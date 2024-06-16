@@ -1,215 +1,274 @@
 #include <hd_model.h>
 
 
+void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_test and y_test contains the whole training set, not single data point
+    
+    shuffle(all_data, all_label, DATA_SIZE, 42); //arbitrary random state 42     
 
-void init_hd_model(hdModel* hd_model, float** X_train, float** X_test, float* y_train, float* y_test, int in_dim, int out_dim, float lr, float split_size, int data_amount){ //X_test and y_test contains the whole training set, not single data point
-    
-    int train_amount = split_size*data_amount;
-    int test_amount = data_amount-train_amount;
-    
-    hd_model->X_train = X_train;
-    fit(X_train, in_dim, train_amount);
-    hd_model->X_test = X_test;
-    fit(X_test, in_dim, test_amount);
-    hd_model->y_train = y_train;
-    hd_model->y_test = y_test;
-    
-    hd_model->in_dim = in_dim;
-    hd_model->out_dim = out_dim;
-    hd_model->lr = lr;
-    hd_model->split_size = split_size;
+    for(int i = 0; i < TRAIN_AMOUNT; i ++){
+        //mean, sum, std initialization
+        float mean = 0.0;
+        float sum = 0.0;
+        float std = 0;
+        
+        //mean calculation
+        for(int j = 0; j < DATA_IN_DIM; j ++){
+            mean += all_data[i][j];  
+            
+        }
+        mean = mean/DATA_IN_DIM;
+        
+        //std calculation
+        for(int j = 0; j < DATA_IN_DIM; j++){
+            sum += pow(all_data[i][j] - mean, 2);
+        }
+        std = sqrt(sum /(DATA_IN_DIM - 1)); 
 
-    hd_model->class_size = 12;
+        //fit on the curr data
+        for(int j = 0; j < DATA_IN_DIM; j ++){
+            hd_model->X_train[i][j] = (all_data[i][j]-mean)/std;
+ 
+        }
 
-    lrp* linear_rp;
-    init_lrp(linear_rp, in_dim, out_dim);
-    hd_model->encoder = linear_rp;
-    
-    //class_hvs = 12 * out_dim 
-    hd_model->class_hvs = (char**) malloc(sizeof(char)*12); //hard coding the number of classes
-    for(int i = 0; i < 12; i ++){ //hard coding the number of classes
-        hd_model->class_hvs[i] = (char*) malloc(sizeof(char)*out_dim);
-        for(int j = 0; j < out_dim; j ++){
+        //initialize the y train
+        hd_model->y_train[i] = (char)all_label[i];
+    }
+
+
+
+    int index = 0; 
+    for(int i = TRAIN_AMOUNT; i < DATA_SIZE; i ++){
+        float mean = 0.0;
+        float sum = 0.0;
+        float std = 0.0;
+            
+        //mean calculation
+        for(int j = 0; j < DATA_IN_DIM; j ++){
+                mean += all_data[i][j];      //why is the output infinity for the test data?
+            }
+        mean = mean/DATA_IN_DIM;
+
+        //std calculation
+        for(int j = 0; j < DATA_IN_DIM; j++){
+            sum += pow(all_data[i][j] - mean, 2);
+        }
+        std = sqrt(sum /(DATA_IN_DIM - 1)); 
+
+        //fit and assign
+        for(int j = 0; j < DATA_IN_DIM; j ++){
+            hd_model->X_test[index][j] = (all_data[i][j]-mean)/std;
+        }
+
+        //initialize the y test
+        hd_model->y_test[index] = (char)all_label[i];
+
+        index += 1; 
+    }
+
+
+    //initialize class hvs
+    for(int i = 0; i < 12; i ++)
+        for(int j = 0; j < DATA_OUT_DIM; j ++){
             hd_model->class_hvs[i][j] = 0;
         }
-    }
 
-    hd_model->train_encs = (char**) malloc(sizeof(char)*train_amount);
-    for(int k = 0; k < out_dim; k ++){
-        hd_model->train_encs[k] = (char*) malloc(sizeof(char)*out_dim);
-    }
 
+    //initialize linear random projection
+    init_lrp(hd_model);
 }
+
+    
+
+
+
 
 void train(hdModel* model){
-    int n_train = (model->split_size)*(model->data_amount);
-    for(int i = 0; i < n_train; i ++){
-        float* sample = (model->X_train)[i];
+    int initial_class_hv[12] = {0};
+    for(int i = 0; i < TRAIN_AMOUNT; i ++){
+        encode(model, i);
         char label = model->y_train[i];
-        char* enc = encode(model->encoder, sample);
-        float* cos_similarity = (float*) malloc(sizeof(float)*(model->class_size)); //hard coding with number of classes
-        //cosine similairty: enc(d*1) * (n*d) --> (1*d)* (d*n) ---> (n*1) ??
-        cosine_similarity(cos_similarity, model, enc);
-        char index_pred = max_index(cos_similarity, model->class_size);
-        if(index_pred != label){
-            add_enc(model->class_hvs[label], enc, model->out_dim);
-            subtract_enc(model->class_hvs[index_pred], enc, model->out_dim);
+        if(!initial_class_hv[label]){
+            for(int j = 0; j < DATA_OUT_DIM; j ++){
+                model->class_hvs[label][j] = model->train_encs[i][j];
+            }
+            initial_class_hv[label] = 1;
+            continue;
         }
-        append_enc(model->train_encs, enc, i, model->out_dim);
-    }
-}
-
-void test(hdModel* hd_model){
-    int n_test = (hd_model->data_amount)*((1-hd_model->split_size)*hd_model->data_amount);
-    float correct_count = 0.0; 
-    for(int i = 0; i < n_test; i++){
-        float* sample = hd_model->X_test[i];
-        char label = hd_model->y_test[i];
-        char* enc = encode(hd_model->encoder, sample);
-        float* cos_similarity = (float*) malloc(sizeof(float)*(hd_model->class_size)); //hard coding with number of classes
-        cosine_similarity(cos_similarity, hd_model, enc);
-        char index_pred = max_index(cos_similarity, hd_model->class_size);
-        if(index_pred == label){
-            correct_count += 1;
-        }
-    }
-    printf("accuracy score: %f", correct_count/n_test);
-}
-
-void retrain(hdModel* hd_model){
-    int train_length =  hd_model->data_amount*hd_model->split_size;
-    int count = 0; 
-    for(int e = 0; e < 3; e++){
-        count = 0;
-        for(int i = 0; i < train_length; i ++){
-            char* enc = hd_model->train_encs[i];
-            char label = hd_model->y_train[i];
-            float* cos_similarity = (float*) malloc(sizeof(float)*(hd_model->class_size)); //hard coding with number of classes
-            cosine_similarity(cos_similarity, hd_model, enc);
-            char index_pred = max_index(cos_similarity, hd_model->class_size);
-            if(index_pred != label){
-                add_enc(hd_model->class_hvs[label], enc, hd_model->out_dim);
-                subtract_enc(hd_model->class_hvs[index_pred], enc, hd_model->out_dim);
-                count += 1;
+        //calculate cosine similarity
+        int index_pred = 0;
+        float biggest_similarity = -10000;
+        for(int j = 0; j < CLASS_AMOUNT; j ++){
+            if(!initial_class_hv[j]){
+                continue;
+            }
+            float curr_similarity = 0;
+            //dot product of the class hv and encoding, magnitude of the class hv and encoding
+            int dot = 0; 
+            float hv_magnitude = 0;
+            float encoding_magnitude = 0;
+            for(int k = 0; k < DATA_OUT_DIM; k ++){
+                dot += model->class_hvs[j][k] * model->train_encs[i][k];
+                hv_magnitude += model->class_hvs[j][k]*model->class_hvs[j][k];
+                encoding_magnitude += model->train_encs[i][k]*model->train_encs[i][k];
+            }
+            curr_similarity = dot/(sqrt(hv_magnitude)*sqrt(encoding_magnitude));
+            if(curr_similarity > biggest_similarity){
+                index_pred = j;
+                biggest_similarity = curr_similarity;
             }
         }
-        printf(count);
+        if(index_pred == label){
+            for(int j = 0; j < DATA_OUT_DIM; j ++){
+                model->class_hvs[label][j] += model->train_encs[i][j];
+            }
+        }
+        if(index_pred != label){
+            //add encoding + subtract encoding + append to 
+            for(int j = 0; j < DATA_OUT_DIM; j ++){
+                model->class_hvs[label][j] +=  model->train_encs[i][j];
+                model->class_hvs[index_pred][j] -= model->train_encs[i][j];
+            }
+        }
     }
 }
 
-void free_hd_model(hdModel* hd_model){
-    int train_n = hd_model->data_amount * hd_model->split_size;
-    int test_n = hd_model->data_amount * (1-hd_model->split_size);
-    for(int i = 0; i < train_n; i ++){
-        free(hd_model->X_train[i]);
-    }
-    for(int i = 0; i < test_n; i ++){
-        free(hd_model->X_test[i]);
-    }
-    free(hd_model->X_train);
-    free(hd_model->X_test);
+void test(hdModel* model){
+    int correct_count = 0; 
+    for(int i = 0; i < TEST_AMOUNT; i++){
+        
+        float curr_enc[DATA_OUT_DIM] = {0};
+        //encode
+        for (int j = 0; j < DATA_OUT_DIM; j ++) {
+            for (int k = 0; k< DATA_IN_DIM; k ++) { 
+                curr_enc[j] += model->projection[k][j]*model->X_test[i][j];
+        }
+            curr_enc[j] = sign(curr_enc[j]);
+        }
 
-    free(hd_model->y_test);
-    free(hd_model->y_train);
+        //calculate cosine similarity
+        int index_pred = 0;
+        float biggest_similarity = -10000;
+        for(int j = 0; j < CLASS_AMOUNT; j ++){
+            float curr_similarity = 0.0;
+            //dot product of the class hv and encoding, magnitude of the class hv and encoding
+            int dot = 0; 
+            int hv_magnitude = 0;
+            int encoding_magnitude = 0;
+            for(int k = 0; k < DATA_OUT_DIM; k ++){
+                dot += model->class_hvs[j][k]*curr_enc[k];
+                hv_magnitude += model->class_hvs[j][k]*model->class_hvs[j][k];
+                encoding_magnitude += curr_enc[k]*curr_enc[k];
+            }
+            curr_similarity = dot/(sqrt(hv_magnitude)*sqrt(encoding_magnitude));
+            if(curr_similarity > biggest_similarity){
+                index_pred = j;
+                biggest_similarity = curr_similarity;
+            }
+        }
+
+        char label = model->y_test[i];
+        if(index_pred == label){
+            correct_count += 1;
+        }    
+    }
+    float score = correct_count/TEST_AMOUNT/1.0;
     
-    free_lrp(hd_model->encoder);
-    
-    for(int i = 0; i < hd_model->class_size; i ++){
-        free(hd_model->class_hvs[i]);
-    }
-    free(hd_model->class_hvs);
-
-    for(int i = 0; i < train_n; i ++){
-        free(hd_model->train_encs[i]);
-    }
-    free(hd_model->train_encs);
-
-    free(hd_model);
+    printf("accuracy: %f \n", score);
     
 }
 
-void fit(float** input_feature, int in_dim, int data_amount){
-    for(int i = 0; i < data_amount; i ++){
-        float* feature = input_feature[i];
-        float mean = calculate_mean(feature, in_dim);
-        float standard_deviation = calculate_standard_deviation(feature, in_dim);
-        for(int j = 0; j < in_dim; j ++){
-            feature[j] = (feature[j]-mean)/standard_deviation;
+
+        
+
+// void retrain(hdModel* hd_model){
+//     int count = 0; 
+//     for(int e = 0; e < 3; e++){
+//         count = 0;
+//         for(int i = 0; i < TRAIN_AMOUNT; i ++){
+//             char* enc = hd_model->train_encs[i];
+//             char label = hd_model->y_train[i];
+//             float* cos_similarity = (float*) malloc(sizeof(float)*(CLASS_AMOUNT)); //hard coding with number of classes
+//             cosine_similarity(cos_similarity, hd_model, enc);
+//             char index_pred = max_index(cos_similarity, CLASS_AMOUNT);
+//             if(index_pred != label){
+//                 add_enc(hd_model->class_hvs[label], enc, DATA_OUT_DIM);
+//                 subtract_enc(hd_model->class_hvs[index_pred], enc, DATA_OUT_DIM);
+//                 count += 1;
+//             }
+//         }
+//         //printf("count %d", count);
+//     }
+// }
+
+
+
+//---------------------helper method-------------------------------------
+
+
+
+
+void shuffle(float **array1, int *array2, int n, unsigned int seed) {
+    if (n > 1) {
+        srand(seed);
+        for (int i = 0; i < n - 1; i++) {
+            int j = i + rand() / (RAND_MAX / (n - i) + 1);
+            float *temp1 = array1[j];
+            array1[j] = array1[i];
+            array1[i] = temp1;
+
+            int temp2 = array2[j];
+            array2[j] = array2[i];
+            array2[i] = temp2;
         }
     }
 }
 
 
 
-float calculate_mean(float* arr, int size){
-    float sum = 0.0;
-    for(int i = 0; i < size; i ++){
-        sum =+ arr[i];
-    }
-    return sum/size;
-}
-
-float calculate_standard_deviation(float* arr, int size){
-    float mean = calculate_mean(arr, size);
-    float sum = 0.0;
-    for (int i = 0; i < size; i++) {
-        sum += pow(arr[i] - mean, 2);
-    }
-    return sqrt(sum / (size - 1)); 
-}
-
-float dot_product(float* vec1, float* vec2, int length){
-    //cosine similairty: enc(d*1) * (n*d) --> (1*d)* (d*n) ---> (n*1)
-    float dot = 0.0; 
-    for(int i = 0; i < length; i ++){
-        dot += vec1[i] * vec2[i];
-    }
-    return dot;
-}
-
-float magnitude(float* vec1, int length){
-    float magnitude = 0.0;
-    for(int i = 0; i < length; i ++){
-        magnitude += vec1[i]*vec1[i];
-    }
-    return sqrt(magnitude);
-}
 
 
-void cosine_similarity(float* cosine_similarity, hdModel* model, float* enc){
-    for (int i = 0; i < model->class_size; i ++){
-        float similarity = 0.0;
-        float dot = dot_product(enc, model->class_hvs[i], model->out_dim);
-        float magnitude_enc = magnitude(enc, model->out_dim);
-        float magnitude_class_vec = magnitude(model->class_hvs[i], model->out_dim);
-        cosine_similarity[i] = dot/(magnitude_enc*magnitude_class_vec);
-    }
-}
-
-int max_index(float* vec, int length){
-    int max = 0;
-    for(int i = 0; i < length; i++ ){
-        if(vec[i] > vec[max]){
-            vec[max] = vec[i];
+//----------------------------------------linear random porjection methods----------------------------
+void init_lrp(hdModel* model){
+    //init projection D*n
+    for (int i = 0; i < DATA_IN_DIM; i ++) {
+        for (int j = 0; j < DATA_OUT_DIM; j ++) {
+            model->projection[i][j] = sign(generate_normal_random_float());
         }
     }
-    return max;
 }
 
-void add_enc(float* vec1, char* enc, int length){
-    for(int i = 0; i < length; i ++){
-        vec1[i] = vec1[i] + enc[i];
+void encode(hdModel* model, int index){ //x.shape = n * 1
+    for (int i = 0; i < DATA_OUT_DIM; i ++) {
+        for (int j = 0; j < DATA_IN_DIM; j ++) { 
+            model->train_encs[index][i] += model->projection[j][i]*model->X_train[index][j];
+        }
+
+        model->train_encs[index][i] = sign(model->train_encs[index][i]);
     }
 }
 
-void subtract_enc(float* vec1, char* enc, int length){
-    for(int i = 0; i < length; i ++){
-        vec1[i] = vec1[i] - enc[i];
-    }
+//-----------------helper method------------------------------------------------
+float generate_normal_random_float() {
+    float u1, u2;
+    float z0;  // Only using z0, but the Box-Muller produces two values z0 and z1
+
+    // Generate two uniform random numbers between 0 and 1
+    u1 = (float)rand() / RAND_MAX;
+    u2 = (float)rand() / RAND_MAX;
+
+    // Apply the Box-Muller formula
+    z0 = sqrtf(-2.0f * logf(u1)) * cosf(2.0f * M_PI * u2);
+
+    return z0;
 }
 
-void append_enc(char** total_train_encs, char* enc, int index, int length){
-    for(int i = 0; i < length; i ++){
-        total_train_encs[index][i] = enc[i];
+char sign(float num){
+    if (num > 0) {
+        return 1;
     }
+    if (num < 0) {
+        return -1;
+    }  
+    return 0;
 }
+
