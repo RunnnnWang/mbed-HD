@@ -171,7 +171,7 @@ void test(hdModel* model){
             correct_count += 1;
         }    
     }
-    float score = correct_count/TEST_AMOUNT/1.0;
+    float score = (float)correct_count/(float)TEST_AMOUNT/1.0;
     
     printf("accuracy: %f \n", score);
     
