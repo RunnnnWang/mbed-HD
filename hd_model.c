@@ -4,6 +4,9 @@
 void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_test and y_test contains the whole training set, not single data point
     
     shuffle(all_data, all_label, DATA_SIZE, 42); //arbitrary random state 42     
+    float printMean = 0;
+    float printSum = 0;
+    float printStd = 0;
 
     for(int i = 0; i < TRAIN_AMOUNT; i ++){
         //mean, sum, std initialization
@@ -21,19 +24,31 @@ void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_tes
         //std calculation
         for(int j = 0; j < DATA_IN_DIM; j++){
             sum += pow(all_data[i][j] - mean, 2);
+            printStd += pow(all_data[i][j] - mean, 2);
+            printSum += all_data[i][j];
+
         }
-        std = sqrt(sum /(DATA_IN_DIM - 1)); 
+        std = sqrt(sum /(DATA_IN_DIM)); 
 
         //fit on the curr data
         for(int j = 0; j < DATA_IN_DIM; j ++){
             hd_model->X_train[i][j] = (all_data[i][j]-mean)/std;
  
         }
+        printMean += mean;
+        // printSum += sum;
+        // printStd = std;
 
         //initialize the y train
         hd_model->y_train[i] = (char)all_label[i];
     }
+    printStd = sqrt(printStd / TRAIN_AMOUNT / DATA_IN_DIM);
+    printMean = printMean / TRAIN_AMOUNT;
+    printf("mean:%f, sum:%f, std:%f\n", printMean, printSum, printStd);
 
+    printMean = 0.0;
+    printSum = 0.0;
+    printStd = 0.0;
 
 
     int index = 0; 
@@ -51,19 +66,29 @@ void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_tes
         //std calculation
         for(int j = 0; j < DATA_IN_DIM; j++){
             sum += pow(all_data[i][j] - mean, 2);
+            printStd += pow(all_data[i][j] - mean, 2);
+            printSum += all_data[i][j];
         }
-        std = sqrt(sum /(DATA_IN_DIM - 1)); 
+        std = sqrt(sum /(DATA_IN_DIM )); 
 
         //fit and assign
         for(int j = 0; j < DATA_IN_DIM; j ++){
-            hd_model->X_test[index][j] = (all_data[i][j]-mean)/std;
+            hd_model->X_test[i][j] = (all_data[i][j]-mean)/std;
+            // hd_model->X_test[index][j] = (all_data[i][j]-mean)/std;
         }
 
         //initialize the y test
-        hd_model->y_test[index] = (char)all_label[i];
+        hd_model->y_test[i] = (char)all_label[i];
+        // hd_model->y_test[index] = (char)all_label[i];
 
         index += 1; 
+        printMean += mean;
+        // printSum += sum;
+        // printStd = std;
     }
+    printStd = sqrt(printStd / TRAIN_AMOUNT / DATA_IN_DIM);
+    printMean = printMean / TRAIN_AMOUNT;
+    printf("mean:%f, sum:%f, std:%f\n", printMean, printSum, printStd);
 
 
     //initialize class hvs
