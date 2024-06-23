@@ -115,7 +115,7 @@ cJSON* parse_json(const char* json_string) {
 
 
 int main() {
-    const char *filename = "data.json";
+    const char *filename = "dataNew.json";
     const char *labelfile = "label.json";
 
     char *json_string = read_file(filename);
