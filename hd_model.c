@@ -141,18 +141,18 @@ void train(hdModel* model){
                 biggest_similarity = curr_similarity;
             }
         }
-        if(index_pred == label){
-            for(int j = 0; j < DATA_OUT_DIM; j ++){
-                model->class_hvs[label][j] += model->train_encs[i][j];
-            }
+        // if(index_pred == label){
+        //     for(int j = 0; j < DATA_OUT_DIM; j ++){
+        //         model->class_hvs[label][j] += model->train_encs[i][j];
+        //     }
+        // }
+        // if(index_pred != label){
+        //add encoding + subtract encoding + append to 
+        for(int j = 0; j < DATA_OUT_DIM; j ++){
+            model->class_hvs[label][j] +=  model->train_encs[i][j];
+            model->class_hvs[index_pred][j] -= model->train_encs[i][j];
         }
-        if(index_pred != label){
-            //add encoding + subtract encoding + append to 
-            for(int j = 0; j < DATA_OUT_DIM; j ++){
-                model->class_hvs[label][j] +=  model->train_encs[i][j];
-                model->class_hvs[index_pred][j] -= model->train_encs[i][j];
-            }
-        }
+        // }
     }
 }
 
