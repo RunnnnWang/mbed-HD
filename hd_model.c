@@ -4,7 +4,7 @@
 void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_test and y_test contains the whole training set, not single data point
     
 //closed shuffle
-    shuffle(all_data, all_label, DATA_SIZE, 6); //arbitrary random state 42  
+  shuffle(all_data, all_label, DATA_SIZE, 6); //arbitrary random state 42  
 
 
     // float printMean = 0;
@@ -141,11 +141,7 @@ void train(hdModel* model){
                 biggest_similarity = curr_similarity;
             }
         }
-        if(index_pred == label){
-            for(int j = 0; j < DATA_OUT_DIM; j ++){
-                model->class_hvs[label][j] += model->train_encs[i][j];
-            }
-        }
+
         if(index_pred != label){
             //add encoding + subtract encoding + append to 
             for(int j = 0; j < DATA_OUT_DIM; j ++){
@@ -164,7 +160,7 @@ void test(hdModel* model){
         //encode
         for (int j = 0; j < DATA_OUT_DIM; j ++) {
             for (int k = 0; k< DATA_IN_DIM; k ++) { 
-                curr_enc[j] += model->projection[k][j]*model->X_test[i][j];
+                curr_enc[j] += model->projection[j][k]*model->X_test[i][k];
         }
             curr_enc[j] = sign(curr_enc[j]);
         }
@@ -204,25 +200,52 @@ void test(hdModel* model){
 
         
 
-// void retrain(hdModel* hd_model){
-//     int count = 0; 
-//     for(int e = 0; e < 3; e++){
-//         count = 0;
-//         for(int i = 0; i < TRAIN_AMOUNT; i ++){
-//             char* enc = hd_model->train_encs[i];
-//             char label = hd_model->y_train[i];
-//             float* cos_similarity = (float*) malloc(sizeof(float)*(CLASS_AMOUNT)); //hard coding with number of classes
-//             cosine_similarity(cos_similarity, hd_model, enc);
-//             char index_pred = max_index(cos_similarity, CLASS_AMOUNT);
-//             if(index_pred != label){
-//                 add_enc(hd_model->class_hvs[label], enc, DATA_OUT_DIM);
-//                 subtract_enc(hd_model->class_hvs[index_pred], enc, DATA_OUT_DIM);
-//                 count += 1;
-//             }
-//         }
-//         //printf("count %d", count);
-//     }
-// }
+void retrain(hdModel* model){
+    int count = 0; 
+    for(int e = 0; e < 4; e++){
+        count = 0;
+        for(int i = 0; i < TRAIN_AMOUNT; i ++){
+            
+            //get encoding + label
+            char curr_enc[DATA_OUT_DIM];
+            for(int j = 0; j < DATA_OUT_DIM; j ++){
+                curr_enc[j] = model->train_encs[i][j];
+            }
+            char label = model->y_train[i];
+
+            //initialize pred and similairty
+            int index_pred = 0;
+            float biggest_similarity = -10000;
+            
+            for(int j = 0; j < CLASS_AMOUNT; j ++){
+                float curr_similarity = 0.0;
+            //dot product of the class hv and encoding, magnitude of the class hv and encoding
+                int dot = 0; 
+                int hv_magnitude = 0;
+                int encoding_magnitude = 0;
+                for(int k = 0; k < DATA_OUT_DIM; k ++){
+                    dot += model->class_hvs[j][k]*curr_enc[k];
+                    hv_magnitude += model->class_hvs[j][k]*model->class_hvs[j][k];
+                    encoding_magnitude += curr_enc[k]*curr_enc[k];
+                }
+                curr_similarity = dot/(sqrt(hv_magnitude)*sqrt(encoding_magnitude));
+                if(curr_similarity > biggest_similarity){
+                    index_pred = j;
+                    biggest_similarity = curr_similarity;
+                }
+            }
+            if(index_pred != label){
+            //add encoding + subtract encoding + append to 
+                for(int j = 0; j < DATA_OUT_DIM; j ++){
+                    model->class_hvs[label][j] +=  curr_enc[j];
+                    model->class_hvs[index_pred][j] -= curr_enc[j];
+                }
+                count += 1;
+            }
+        }
+        printf("count %d", count);
+    }
+}
 
 
 
@@ -254,8 +277,8 @@ void shuffle(float **array1, int *array2, int n, unsigned int seed) {
 //----------------------------------------linear random porjection methods----------------------------
 void init_lrp(hdModel* model){
     //init projection D*n
-    for (int i = 0; i < DATA_IN_DIM; i ++) {
-        for (int j = 0; j < DATA_OUT_DIM; j ++) {
+    for (int i = 0; i < DATA_OUT_DIM; i ++) {
+        for (int j = 0; j < DATA_IN_DIM; j ++) {
             model->projection[i][j] = sign(generate_normal_random_float());
         }
     }
@@ -264,7 +287,7 @@ void init_lrp(hdModel* model){
 void encode(hdModel* model, int index){ //x.shape = n * 1
     for (int i = 0; i < DATA_OUT_DIM; i ++) {
         for (int j = 0; j < DATA_IN_DIM; j ++) { 
-            model->train_encs[index][i] += model->projection[j][i]*model->X_train[index][j];
+            model->train_encs[index][i] += model->projection[i][j]*model->X_train[index][j];
         }
 
         model->train_encs[index][i] = sign(model->train_encs[index][i]);

@@ -28,7 +28,7 @@ typedef struct {
     float X_test[TEST_AMOUNT][DATA_IN_DIM]; 
     char y_train[TRAIN_AMOUNT];
     char y_test[TEST_AMOUNT];
-    char projection[DATA_IN_DIM][DATA_OUT_DIM]; //IN_dim = # rows, out dim = # columns; so d * n
+    char projection[DATA_OUT_DIM][DATA_IN_DIM]; //IN_dim = # rows, out dim = # columns; so d * n
 } hdModel;
 
 void init_hd_model(hdModel* hd_model, float** all_data, int* all_label);

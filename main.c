@@ -142,10 +142,25 @@ int main() {
 
     hdModel* model = malloc(sizeof(hdModel));
     init_hd_model(model, all_data, all_label);
+    for(int i = 0; i < 10; i ++){
+        int count1 = 0;
+        int countn1 = 0;
+        for(int j = 0; j < 256; j ++){
+            if(model->projection[i][j]==1){
+                count1 += 1;
+            }
+            else{
+                countn1 += 1;
+            }
+        }
+        printf("c1 : %d, cn1: %d", count1, countn1);
+    }
 
     train(model);
     test(model);
 
+    retrain(model);
+    test(model);
     //free the model
     free(model);
   
