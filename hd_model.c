@@ -4,7 +4,7 @@
 void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_test and y_test contains the whole training set, not single data point
     
 //closed shuffle
-//    shuffle(all_data, all_label, DATA_SIZE, 6); //arbitrary random state 42  
+    shuffle(all_data, all_label, DATA_SIZE, 6); //arbitrary random state 42  
 
 
     // float printMean = 0;
@@ -86,7 +86,7 @@ void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_tes
     }
 
     for (int i = TRAIN_AMOUNT; i < DATA_SIZE; i++){
-        hd_model->y_train[i - TRAIN_AMOUNT] = (char)all_label[i];
+        hd_model->y_test[i - TRAIN_AMOUNT] = (char)all_label[i];
     }
 
 
