@@ -3,7 +3,10 @@
 
 void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_test and y_test contains the whole training set, not single data point
     
-    shuffle(all_data, all_label, DATA_SIZE, 6); //arbitrary random state 42     
+//closed shuffle
+//    shuffle(all_data, all_label, DATA_SIZE, 6); //arbitrary random state 42  
+
+
     // float printMean = 0;
     // float printSum = 0;
     // float printStd = 0;
@@ -40,6 +43,10 @@ void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_tes
             // printSum += (all_data[i][j]-mean)/std;
 
         }
+
+        for(int j = 0; j < TEST_AMOUNT; j ++){
+            hd_model->X_test[j][i] = (all_data[TRAIN_AMOUNT+j][i]-mean)/std;
+        }
         // printMean += mean;
         // printSum += sum;
         // printStd = std;
@@ -67,46 +74,6 @@ void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_tes
 
     // int index = 0; 
     // for(int i = TRAIN_AMOUNT; i < DATA_SIZE; i ++){
-    for(int i = 0; i < DATA_IN_DIM; i ++){
-        float mean = 0.0;
-        float sum = 0.0;
-        float std = 0.0;
-            
-        //mean calculation
-        // for(int j = 0; j < DATA_IN_DIM; j ++){
-        for(int j = TEST_AMOUNT; j < DATA_SIZE; j ++){
-                mean += all_data[j][i];      //why is the output infinity for the test data?
-            }
-        mean = mean/(DATA_SIZE - TEST_AMOUNT);
-
-        //std calculation
-        // for(int j = 0; j < DATA_IN_DIM; j++){
-        for(int j = TEST_AMOUNT; j < DATA_SIZE; j ++){
-            sum += pow(all_data[j][i] - mean, 2);
-            // printStd += pow(all_data[i][j] - mean, 2);
-        }
-        std = sqrt(sum /(DATA_SIZE - TEST_AMOUNT)); 
-
-        //fit and assign
-        // for(int j = 0; j < DATA_IN_DIM; j ++){
-        for(int j = TEST_AMOUNT; j < DATA_SIZE; j ++){
-            hd_model->X_test[j][i - TRAIN_AMOUNT] = (all_data[j][i]-mean)/std;
-            // hd_model->X_test[index][j] = (all_data[i][j]-mean)/std;
-            // printSum += (all_data[i][j]-mean)/std;
-        }
-
-        //initialize the y test
-        // hd_model->y_test[i - TRAIN_AMOUNT] = (char)all_label[i];
-        // hd_model->y_test[index] = (char)all_label[i];
-        // printySum += (int)all_label[i];
-        // printyStd += ((int)all_label[i] - 5.414) * ((int)all_label[i] - 5.414);
-
-        // index += 1; 
-        // // printf("%d:%d " , i, index);
-        // printMean += mean;
-        // printSum += sum;
-        // printStd = std;
-    }
     // printStd = sqrt(printStd / (DATA_SIZE - TRAIN_AMOUNT) / DATA_IN_DIM);
     // printMean = printMean / (DATA_SIZE - TRAIN_AMOUNT);
     // printyMean = printySum / (DATA_SIZE - TRAIN_AMOUNT);
