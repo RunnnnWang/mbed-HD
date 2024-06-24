@@ -5,24 +5,24 @@ void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_tes
     
     shuffle(all_data, all_label, DATA_SIZE, 42); //arbitrary random state 42     
 
-    for(int i = 0; i < TRAIN_AMOUNT; i ++){
+    for(int i = 0; i < DATA_IN_DIM; i ++){
         //mean, sum, std initialization
         float mean = 0.0;
         float sum = 0.0;
-        float std = 0;
+        float std = 0.0;
         
         //mean calculation
-        for(int j = 0; j < DATA_IN_DIM; j ++){
-            mean += all_data[i][j];  
+        for(int j = 0; j < TRAIN_AMOUNT; j ++){
+            mean += all_data[j][i];  
             
         }
-        mean = mean/DATA_IN_DIM;
+        mean = mean/TRAIN_AMOUNT;
         
         //std calculation
-        for(int j = 0; j < DATA_IN_DIM; j++){
-            sum += pow(all_data[i][j] - mean, 2);
+        for(int j = 0; j < TRAIN_AMOUNT; j++){
+            sum += pow(all_data[j][i] - mean, 2);
         }
-        std = sqrt(sum /(DATA_IN_DIM - 1)); 
+        std = sqrt(sum /(TRAIN_AMOUNT)); 
 
         //fit on the curr data
         for(int j = 0; j < DATA_IN_DIM; j ++){
