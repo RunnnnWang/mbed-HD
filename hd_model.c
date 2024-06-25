@@ -4,7 +4,7 @@
 void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_test and y_test contains the whole training set, not single data point
     
 //closed shuffle
-  shuffle(all_data, all_label, DATA_SIZE, 6); //arbitrary random state 42  
+  shuffle(all_data, all_label, DATA_SIZE, 10); //arbitrary random state 42  
 
 
     // float printMean = 0;
@@ -122,12 +122,12 @@ void train(hdModel* model){
         int index_pred = 0;
         float biggest_similarity = -10000;
         for(int j = 0; j < CLASS_AMOUNT; j ++){
-            if(!initial_class_hv[j]){
-                continue;
-            }
+            // if(!initial_class_hv[j]){
+            //     continue;
+            // }
             float curr_similarity = 0;
             //dot product of the class hv and encoding, magnitude of the class hv and encoding
-            int dot = 0; 
+            int dot = 0;   
             float hv_magnitude = 0;
             float encoding_magnitude = 0;
             for(int k = 0; k < DATA_OUT_DIM; k ++){
@@ -136,18 +136,21 @@ void train(hdModel* model){
                 encoding_magnitude += model->train_encs[i][k]*model->train_encs[i][k];
             }
             curr_similarity = dot/(sqrt(hv_magnitude)*sqrt(encoding_magnitude));
+            // printf("cosine similarity: %f\n", curr_similarity);
             if(curr_similarity > biggest_similarity){
                 index_pred = j;
                 biggest_similarity = curr_similarity;
+                // printf("dot: %d; hv: %f; enc: %f\n", dot, sqrt(hv_magnitude), encoding_magnitude);
             }
         }
+        // printf("largest cosine similarity: %f\n", biggest_similarity);
 
-        if(index_pred != label){
+        // if(index_pred != label){
             //add encoding + subtract encoding + append to 
             for(int j = 0; j < DATA_OUT_DIM; j ++){
                 model->class_hvs[label][j] +=  model->train_encs[i][j];
                 model->class_hvs[index_pred][j] -= model->train_encs[i][j];
-            }
+            // }
         }
     }
 }
@@ -172,8 +175,8 @@ void test(hdModel* model){
             float curr_similarity = 0.0;
             //dot product of the class hv and encoding, magnitude of the class hv and encoding
             int dot = 0; 
-            int hv_magnitude = 0;
-            int encoding_magnitude = 0;
+            float hv_magnitude = 0;
+            float encoding_magnitude = 0;
             for(int k = 0; k < DATA_OUT_DIM; k ++){
                 dot += model->class_hvs[j][k]*curr_enc[k];
                 hv_magnitude += model->class_hvs[j][k]*model->class_hvs[j][k];
@@ -221,8 +224,8 @@ void retrain(hdModel* model){
                 float curr_similarity = 0.0;
             //dot product of the class hv and encoding, magnitude of the class hv and encoding
                 int dot = 0; 
-                int hv_magnitude = 0;
-                int encoding_magnitude = 0;
+                float hv_magnitude = 0;
+                float encoding_magnitude = 0;
                 for(int k = 0; k < DATA_OUT_DIM; k ++){
                     dot += model->class_hvs[j][k]*curr_enc[k];
                     hv_magnitude += model->class_hvs[j][k]*model->class_hvs[j][k];
@@ -243,7 +246,7 @@ void retrain(hdModel* model){
                 count += 1;
             }
         }
-        printf("count %d", count);
+        // printf("count %d", count);
     }
 }
 
