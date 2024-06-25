@@ -22,7 +22,7 @@
 #define LEARNING_RATE 0.1
 
 typedef struct {
-    char class_hvs[CLASS_AMOUNT][DATA_OUT_DIM];
+    int class_hvs[CLASS_AMOUNT][DATA_OUT_DIM];
     float train_encs[TRAIN_AMOUNT][DATA_OUT_DIM];
     float X_train[TRAIN_AMOUNT][DATA_IN_DIM];
     float X_test[TEST_AMOUNT][DATA_IN_DIM]; 
