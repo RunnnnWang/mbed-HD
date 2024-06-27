@@ -10,6 +10,7 @@ float** process_2d_array(cJSON *json, int *rows, int *cols) {
     // Check if the JSON is an array
     if (!cJSON_IsArray(json)) {
         fprintf(stderr, "JSON data is not an array\n");
+        printf("in 1st if\n");
         return NULL;
     }
 
@@ -17,6 +18,7 @@ float** process_2d_array(cJSON *json, int *rows, int *cols) {
     *rows = cJSON_GetArraySize(json);
     if (*rows == 0) {
         fprintf(stderr, "Empty data array\n");
+        printf("in 2st if\n");
         return NULL;
     }
 
@@ -24,6 +26,7 @@ float** process_2d_array(cJSON *json, int *rows, int *cols) {
     cJSON *first_row = cJSON_GetArrayItem(json, 0);
     if (!cJSON_IsArray(first_row)) {
         fprintf(stderr, "First row is not an array\n");
+        printf("in 3st if\n");
         return NULL;
     }
 
@@ -142,19 +145,67 @@ int main() {
 
     hdModel* model = malloc(sizeof(hdModel));
     init_hd_model(model, all_data, all_label);
-    for(int i = 0; i < 10; i ++){
-        int count1 = 0;
-        int countn1 = 0;
-        for(int j = 0; j < 256; j ++){
-            if(model->projection[i][j]==1){
-                count1 += 1;
-            }
-            else{
-                countn1 += 1;
-            }
-        }
-        printf("c1 : %d, cn1: %d", count1, countn1);
-    }
+    // for(int i = 0; i < 10; i ++){
+    //     int count1 = 0;
+    //     int countn1 = 0;
+    //     for(int j = 0; j < 256; j ++){
+    //         if(model->projection[i][j]==1){
+    //             count1 += 1;
+    //         }
+    //         else{
+    //             countn1 += 1;
+    //         }
+    //     }
+    //     printf("c1 : %d, cn1: %d", count1, countn1);
+    // }
+
+
+    // const char *projection_filename = "projection.json";
+    // char *projection_string =read_file(projection_filename);
+    // cJSON *parse_projection = parse_json(projection_string);
+    // int data_in;
+    // int data_out;
+    // float **projection_matrix = process_2d_array(parse_projection, &data_out, &data_in);
+    // // printf("s//...%d, %d\n", data_out, data_in);
+    // for (int i = 0; i < DATA_OUT_DIM; i ++) {
+    //     for (int j = 0; j < DATA_IN_DIM; j ++) {
+    //         model->projection[i][j] = sign(projection_matrix[i][j]);
+    //     }
+    // }
+
+    // const char *Xtrain_filename = "Xtrain.json";
+    // const char *Xtest_filename = "Xtest.json";
+    // const char *Ytrain_filename = "Ytrain.json";
+    // const char *Ytest_filename = "Ytest.json";
+    // char *Xtrain_string =read_file(Xtrain_filename);
+    // char *Xtest_string =read_file(Xtest_filename);
+    // char *Ytrain_string =read_file(Ytrain_filename);
+    // char *Ytest_string =read_file(Ytest_filename);
+    // cJSON *parse_Xtrain = parse_json(Xtrain_string);
+    // cJSON *parse_Xtest = parse_json(Xtest_string);
+    // cJSON *parse_Ytrain = parse_json(Ytrain_string);
+    // cJSON *parse_Ytest = parse_json(Ytest_string);
+    // float **Xtrain = process_2d_array(parse_Xtrain, &data_out, &data_in);
+    // float **Xtest = process_2d_array(parse_Xtest, &data_out, &data_in);
+    // int *Ytrain = process_1d_array(parse_Ytrain, &data_in);
+    // int *Ytest = process_1d_array(parse_Ytest, &data_out);
+    // for (int i = 0; i < TRAIN_AMOUNT; i ++) {
+    //     for (int j = 0; j < DATA_IN_DIM; j ++) {
+    //         model->X_train[i][j] = Xtrain[i][j];
+    //     }
+    // }
+    // for (int i = 0; i < TEST_AMOUNT; i ++) {
+    //     for (int j = 0; j < DATA_IN_DIM; j ++) {
+    //         model->X_test[i][j] = Xtest[i][j];
+    //     }
+    // }
+    // for (int i = 0; i < TRAIN_AMOUNT; i++){
+    //     model->y_train[i] = Ytrain[i];
+    // }
+    // for (int i = 0; i < TEST_AMOUNT; i++){
+    //     model->y_test[i] = Ytest[i];
+    // }
+
 
     train(model);
     test(model);

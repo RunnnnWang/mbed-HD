@@ -157,6 +157,10 @@ void train(hdModel* model){
 
 void test(hdModel* model){
     int correct_count = 0; 
+    //true posivie, false positive, false negative
+    int tp[12] = {0};
+    int fp[12] = {0};
+    int fn[12] = {0};
     for(int i = 0; i < TEST_AMOUNT; i++){
         
         float curr_enc[DATA_OUT_DIM] = {0};
@@ -192,11 +196,24 @@ void test(hdModel* model){
         char label = model->y_test[i];
         if(index_pred == label){
             correct_count += 1;
-        }    
+            tp[label] += 1;
+        } 
+        else {
+            fp[index_pred] +=1;
+            fn[label] +=1;
+        }   
     }
+    float f1score = 0;
+    for (int i = 0; i < CLASS_AMOUNT; i++){
+        f1score += (2.0 * tp[i]) / (2.0 * tp[i] + fp[i] + fn[i]);
+    }
+    f1score = f1score / CLASS_AMOUNT;
     float score = (float)correct_count/(float)TEST_AMOUNT/1.0;
     
     printf("accuracy: %f \n", score);
+    printf("f1 score: %f \n", f1score);
+
+
     
 }
 
@@ -258,7 +275,8 @@ void retrain(hdModel* model){
 
 
 void shuffle(float **array1, int *array2, int n, unsigned int seed) {
-    if (n > 1) {
+    for (int k = 0; k < 7; k++){
+        if (n > 1) {
         srand(seed);
         for (int i = 0; i < n - 1; i++) {
             int j = i + rand() / (RAND_MAX / (n - i) + 1);
@@ -270,6 +288,7 @@ void shuffle(float **array1, int *array2, int n, unsigned int seed) {
             array2[j] = array2[i];
             array2[i] = temp2;
         }
+    }
     }
 }
 
