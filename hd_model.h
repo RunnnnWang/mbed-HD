@@ -26,9 +26,9 @@ typedef struct {
     float train_encs[TRAIN_AMOUNT][DATA_OUT_DIM];
     float X_train[TRAIN_AMOUNT][DATA_IN_DIM];
     float X_test[TEST_AMOUNT][DATA_IN_DIM]; 
-    char y_train[TRAIN_AMOUNT];
-    char y_test[TEST_AMOUNT];
-    char projection[DATA_OUT_DIM][DATA_IN_DIM]; //IN_dim = # rows, out dim = # columns; so d * n
+    int y_train[TRAIN_AMOUNT];
+    int y_test[TEST_AMOUNT];
+    int projection[DATA_OUT_DIM][DATA_IN_DIM]; //IN_dim = # rows, out dim = # columns; so d * n
 } hdModel;
 
 void init_hd_model(hdModel* hd_model, float** all_data, int* all_label);
@@ -42,7 +42,7 @@ void init_lrp(hdModel* hd_model);
 void encode(hdModel* hd_model, int index);
     //-----------------------------------helper method-----------------------------
     float generate_normal_random_float();
-    char sign(float num);
+    int sign(float num);
 
 
 
@@ -52,7 +52,7 @@ void transform(float** input_feature);
 
 
 
-void append_enc(char** total_train_encs, char* enc, int index, int length);
+void append_enc(int** total_train_encs, int* enc, int index, int length);
 
 
 

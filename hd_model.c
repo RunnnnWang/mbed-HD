@@ -4,7 +4,7 @@
 void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_test and y_test contains the whole training set, not single data point
     
 //closed shuffle
-  shuffle(all_data, all_label, DATA_SIZE, 10); //arbitrary random state 42  
+  shuffle(all_data, all_label, DATA_SIZE, 1); //arbitrary random state 42  
 
 
     // float printMean = 0;
@@ -82,11 +82,11 @@ void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_tes
     // printf("ymean:%f, ysum:%f, ystd:%f\n", printyMean, printySum, printyStd);
 
     for (int i = 0; i < TRAIN_AMOUNT; i++){
-        hd_model->y_train[i] = (char)all_label[i];
+        hd_model->y_train[i] = (int)all_label[i];
     }
 
     for (int i = TRAIN_AMOUNT; i < DATA_SIZE; i++){
-        hd_model->y_test[i - TRAIN_AMOUNT] = (char)all_label[i];
+        hd_model->y_test[i - TRAIN_AMOUNT] = (int)all_label[i];
     }
 
 
@@ -110,7 +110,7 @@ void train(hdModel* model){
     int initial_class_hv[12] = {0};
     for(int i = 0; i < TRAIN_AMOUNT; i ++){
         encode(model, i);
-        char label = model->y_train[i];
+        int label = model->y_train[i];
         if(!initial_class_hv[label]){
             for(int j = 0; j < DATA_OUT_DIM; j ++){
                 model->class_hvs[label][j] = model->train_encs[i][j];
@@ -193,7 +193,7 @@ void test(hdModel* model){
             }
         }
 
-        char label = model->y_test[i];
+        int label = model->y_test[i];
         if(index_pred == label){
             correct_count += 1;
             tp[label] += 1;
@@ -222,16 +222,16 @@ void test(hdModel* model){
 
 void retrain(hdModel* model){
     int count = 0; 
-    for(int e = 0; e < 4; e++){
+    for(int e = 0; e < 10; e++){
         count = 0;
         for(int i = 0; i < TRAIN_AMOUNT; i ++){
             
             //get encoding + label
-            char curr_enc[DATA_OUT_DIM];
+            int curr_enc[DATA_OUT_DIM];
             for(int j = 0; j < DATA_OUT_DIM; j ++){
                 curr_enc[j] = model->train_encs[i][j];
             }
-            char label = model->y_train[i];
+            int label = model->y_train[i];
 
             //initialize pred and similairty
             int index_pred = 0;
@@ -275,7 +275,7 @@ void retrain(hdModel* model){
 
 
 void shuffle(float **array1, int *array2, int n, unsigned int seed) {
-    for (int k = 0; k < 7; k++){
+    // for (int k = 0; k < 7; k++){
         if (n > 1) {
         srand(seed);
         for (int i = 0; i < n - 1; i++) {
@@ -289,7 +289,7 @@ void shuffle(float **array1, int *array2, int n, unsigned int seed) {
             array2[i] = temp2;
         }
     }
-    }
+    // }
 }
 
 
@@ -331,7 +331,7 @@ float generate_normal_random_float() {
     return z0;
 }
 
-char sign(float num){
+int sign(float num){
     if (num > 0) {
         return 1;
     }
