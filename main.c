@@ -115,6 +115,14 @@ cJSON* parse_json(const char* json_string) {
 
 
 int main() {
+    float higest_train = 0;
+    float highest_retrian = 0;
+    for(int sh = 1; sh < 15; sh ++){
+        float t_train = 0; 
+        float t_retrian = 0;
+    for(int l = 0 ; l < 8 ; l ++){
+
+    
     const char *filename = "dataNew.json";
     const char *labelfile = "label.json";
 
@@ -141,27 +149,29 @@ int main() {
 
 
     hdModel* model = malloc(sizeof(hdModel));
-    init_hd_model(model, all_data, all_label);
-    for(int i = 0; i < 10; i ++){
-        int count1 = 0;
-        int countn1 = 0;
-        for(int j = 0; j < 256; j ++){
-            if(model->projection[i][j]==1){
-                count1 += 1;
-            }
-            else{
-                countn1 += 1;
-            }
-        }
-        printf("c1 : %d, cn1: %d", count1, countn1);
-    }
+    init_hd_model(model, all_data, all_label, l, sh);
+    // for(int i = 0; i < 10; i ++){
+    //     int count1 = 0;
+    //     int countn1 = 0;
+    //     for(int j = 0; j < 256; j ++){
+    //         if(model->projection[i][j]==1){
+    //             count1 += 1;
+    //         }
+    //         else{
+    //             countn1 += 1;
+    //         }
+    //     }
+    //     printf("c1 : %d, cn1: %d", count1, countn1);
+    // }
 
     train(model);
-    test(model);
+    float train_score = test(model);
+    t_train += train_score;
 
     retrain(model);
-    test(model);
+    float retrain_score = test(model);
     //free the model
+    t_retrian += retrain_score;
     free(model);
   
     //free the original data
@@ -173,6 +183,19 @@ int main() {
     cJSON_Delete(label_json);
     free(json_string);
     free(label_string);
+    
+    
+    }
 
+    printf("%d average accuracy: %f %fn", sh, t_train/8, t_retrian/8);
+    if((t_retrian/8) > highest_retrian) {
+        printf("higest retrain %d,  %f ", sh, t_retrian/8);
+        highest_retrian = t_retrian/8;
+    }
+    if((t_train/8) > higest_train) {
+        printf("higest trian %d,  %f ", sh, t_train/8);
+        higest_train = t_train/8;
+    }
+    }
     return 0;
 }

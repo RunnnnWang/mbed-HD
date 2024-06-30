@@ -1,10 +1,29 @@
 #include <hd_model.h>
 
 
-void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_test and y_test contains the whole training set, not single data point
+void init_hd_model(hdModel* hd_model, float** all_data, int* all_label, int seed, int sh){ //X_test and y_test contains the whole training set, not single data point
     
 //closed shuffle
-  shuffle(all_data, all_label, DATA_SIZE, 10); //arbitrary random state 42  
+   shuffle(all_data, all_label, DATA_SIZE, seed, sh); //arbitrary random state 42  
+    
+    
+    // int data_index[DATA_SIZE];
+    // for(int i = 0; i < DATA_SIZE; i ++) {
+    //     data_index[i] = i;
+    // }
+
+    // int seed = 0; 
+    // srand(seed);
+    // for(int k = 0; k < 10; k ++) {
+    //     for(int i = 0; i < DATA_SIZE; i ++) {
+    //         int j = rand() % (i + 1);;
+    //         data_index[j] = i;
+    //         data_index[i] = j;
+    //     }
+    // }
+    
+
+    
 
 
     // float printMean = 0;
@@ -155,7 +174,7 @@ void train(hdModel* model){
     }
 }
 
-void test(hdModel* model){
+float test(hdModel* model){
     int correct_count = 0; 
     for(int i = 0; i < TEST_AMOUNT; i++){
         
@@ -197,6 +216,7 @@ void test(hdModel* model){
     float score = (float)correct_count/(float)TEST_AMOUNT/1.0;
     
     printf("accuracy: %f \n", score);
+    return score;
     
 }
 
@@ -205,7 +225,7 @@ void test(hdModel* model){
 
 void retrain(hdModel* model){
     int count = 0; 
-    for(int e = 0; e < 4; e++){
+    for(int e = 0; e < 3; e++){
         count = 0;
         for(int i = 0; i < TRAIN_AMOUNT; i ++){
             
@@ -246,7 +266,7 @@ void retrain(hdModel* model){
                 count += 1;
             }
         }
-        // printf("count %d", count);
+        printf("count %d", count);
     }
 }
 
@@ -257,20 +277,23 @@ void retrain(hdModel* model){
 
 
 
-void shuffle(float **array1, int *array2, int n, unsigned int seed) {
-    if (n > 1) {
-        srand(seed);
-        for (int i = 0; i < n - 1; i++) {
-            int j = i + rand() / (RAND_MAX / (n - i) + 1);
-            float *temp1 = array1[j];
-            array1[j] = array1[i];
-            array1[i] = temp1;
+void shuffle(float **array1, int *array2, int n, unsigned int seed, int sh) {
+    for(int k = 0; k < sh; k ++){
+        if (n > 1) {
+            srand(seed);
+            for (int i = 0; i < n - 1; i++) {
+                int j = rand() % (i+1); 
+                float *temp1 = array1[j];
+                array1[j] = array1[i];
+                array1[i] = temp1;
 
-            int temp2 = array2[j];
-            array2[j] = array2[i];
-            array2[i] = temp2;
+                int temp2 = array2[j];
+                array2[j] = array2[i];
+                array2[i] = temp2;
+                }
         }
     }
+    
 }
 
 
