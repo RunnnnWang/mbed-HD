@@ -187,13 +187,13 @@ int main() {
     
     }
 
-    printf("%d average accuracy: %f %fn", sh, t_train/8, t_retrian/8);
+    printf("%d average accuracy: %f %f/n", sh, t_train/8, t_retrian/8);
     if((t_retrian/8) > highest_retrian) {
-        printf("higest retrain %d,  %f ", sh, t_retrian/8);
+        printf("higest retrain %d,  %f /n", sh, t_retrian/8);
         highest_retrian = t_retrian/8;
     }
     if((t_train/8) > higest_train) {
-        printf("higest trian %d,  %f ", sh, t_train/8);
+        printf("higest trian %d,  %f /n", sh, t_train/8);
         higest_train = t_train/8;
     }
     }
