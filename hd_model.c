@@ -225,7 +225,7 @@ float test(hdModel* model){
 
 void retrain(hdModel* model){
     int count = 0; 
-    for(int e = 0; e < 3; e++){
+    for(int e = 0; e < 10; e++){
         count = 0;
         for(int i = 0; i < TRAIN_AMOUNT; i ++){
             
