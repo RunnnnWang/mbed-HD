@@ -17,12 +17,13 @@
 #define DATA_OUT_DIM 10000
 #define CLASS_AMOUNT 12
 
-#define RANDOM_STATE 42
+
 #define SPLIT 0.3
 #define LEARNING_RATE 0.1
 
 typedef struct {
     int class_hvs[CLASS_AMOUNT][DATA_OUT_DIM];
+    int highest_class_hvs[CLASS_AMOUNT][DATA_OUT_DIM];
     float train_encs[TRAIN_AMOUNT][DATA_OUT_DIM];
     float X_train[TRAIN_AMOUNT][DATA_IN_DIM];
     float X_test[TEST_AMOUNT][DATA_IN_DIM]; 
@@ -31,10 +32,10 @@ typedef struct {
     int projection[DATA_OUT_DIM][DATA_IN_DIM]; //IN_dim = # rows, out dim = # columns; so d * n
 } hdModel;
 
-void init_hd_model(hdModel* hd_model, float** all_data, int* all_label);
+void init_hd_model(hdModel* hd_model, float** all_data, int* all_label, int sh);
 void train(hdModel* hd_model);
-void test(hdModel* hd_model);
-void retrain(hdModel* hd_model);
+float test(hdModel* hd_model, int seed, int use_best_class_hv);
+int retrain(hdModel* hd_model);
 
 
 //--------------------------------------linear random projection method--------------------------------------

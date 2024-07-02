@@ -1,10 +1,10 @@
 #include <hd_model.h>
 
 
-void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_test and y_test contains the whole training set, not single data point
+void init_hd_model(hdModel* hd_model, float** all_data, int* all_label, int sh){ //X_test and y_test contains the whole training set, not single data point
     
 //closed shuffle
-  shuffle(all_data, all_label, DATA_SIZE, 1); //arbitrary random state 42  
+  shuffle(all_data, all_label, DATA_SIZE, sh); //arbitrary random state 42  
 
 
     // float printMean = 0;
@@ -155,7 +155,7 @@ void train(hdModel* model){
     }
 }
 
-void test(hdModel* model){
+float test(hdModel* model, int seed, int use_best_class_hv){
     int correct_count = 0; 
     //true posivie, false positive, false negative
     int tp[12] = {0};
@@ -182,9 +182,16 @@ void test(hdModel* model){
             float hv_magnitude = 0;
             float encoding_magnitude = 0;
             for(int k = 0; k < DATA_OUT_DIM; k ++){
-                dot += model->class_hvs[j][k]*curr_enc[k];
-                hv_magnitude += model->class_hvs[j][k]*model->class_hvs[j][k];
+                if(use_best_class_hv) {
+                    dot += model->highest_class_hvs[j][k]*curr_enc[k];
+                    hv_magnitude += model->highest_class_hvs[j][k]*model->highest_class_hvs[j][k];   
+                }
+                else{
+                    dot += model->class_hvs[j][k]*curr_enc[k];
+                    hv_magnitude += model->class_hvs[j][k]*model->class_hvs[j][k];   
+                }
                 encoding_magnitude += curr_enc[k]*curr_enc[k];
+                
             }
             curr_similarity = dot/(sqrt(hv_magnitude)*sqrt(encoding_magnitude));
             if(curr_similarity > biggest_similarity){
@@ -210,18 +217,23 @@ void test(hdModel* model){
     f1score = f1score / CLASS_AMOUNT;
     float score = (float)correct_count/(float)TEST_AMOUNT/1.0;
     
-    printf("accuracy: %f \n", score);
-    printf("f1 score: %f \n", f1score);
-
+    printf("seed %d accuracy: %f \n", seed, score);
+    //printf("f1 score: %f \n", f1score);
+    return score;
+}
 
     
-}
+
 
 
         
 
-void retrain(hdModel* model){
-    int count = 0; 
+int retrain(hdModel* model){
+    float curr_accuracy = 0;
+    float previous_accuracy;
+    float best_accuracy = 0;
+    int use_higest_hv = 0;
+    int count;
     for(int e = 0; e < 10; e++){
         count = 0;
         for(int i = 0; i < TRAIN_AMOUNT; i ++){
@@ -262,9 +274,41 @@ void retrain(hdModel* model){
                 }
                 count += 1;
             }
+        
         }
+
+        curr_accuracy = test(model, 7, 0);
+
+        if(curr_accuracy >= 0.96 && curr_accuracy > best_accuracy) {
+            best_accuracy = curr_accuracy;
+            use_higest_hv = 1;
+            for(int c = 0; c < 12; c ++) {
+                for(int d = 0; d < DATA_OUT_DIM; d ++) {
+                    model->highest_class_hvs[c][d] = model->class_hvs[c][d];
+                }
+            }
+        }
+        
+        if(previous_accuracy == curr_accuracy) {
+            return use_higest_hv;
+        }
+        
+        previous_accuracy = curr_accuracy;
+
+        // if(previous_count > count) {
+        //     previous_count = count;
+        // }
+        // else {
+        //     return;
+        // }
         // printf("count %d", count);
+         // if(e == 0) {
+        //     previous_count = count;
+        //     continue;
+        // }
+    //previous_accuracy = test(model);    
     }
+    return use_higest_hv;
 }
 
 
@@ -275,7 +319,7 @@ void retrain(hdModel* model){
 
 
 void shuffle(float **array1, int *array2, int n, unsigned int seed) {
-    // for (int k = 0; k < 7; k++){
+    for (int k = 0; k < 10; k++){
         if (n > 1) {
         srand(seed);
         for (int i = 0; i < n - 1; i++) {
@@ -287,9 +331,9 @@ void shuffle(float **array1, int *array2, int n, unsigned int seed) {
             int temp2 = array2[j];
             array2[j] = array2[i];
             array2[i] = temp2;
+            }
         }
     }
-    // }
 }
 
 

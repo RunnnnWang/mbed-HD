@@ -118,6 +118,8 @@ cJSON* parse_json(const char* json_string) {
 
 
 int main() {
+    float accuracy = 0; 
+    for(int k = 0; k < 14; k ++){
     const char *filename = "dataNew.json";
     const char *labelfile = "label.json";
 
@@ -144,7 +146,7 @@ int main() {
 
 
     hdModel* model = malloc(sizeof(hdModel));
-    init_hd_model(model, all_data, all_label);
+    init_hd_model(model, all_data, all_label, k);
     // for(int i = 0; i < 10; i ++){
     //     int count1 = 0;
     //     int countn1 = 0;
@@ -208,10 +210,12 @@ int main() {
 
 
     train(model);
-    test(model);
+    printf("train ");
+    test(model, k, 0);
 
-    retrain(model);
-    test(model);
+    int use_higest_hv = retrain(model);
+    printf("retrain: ");
+    accuracy += test(model, k, use_higest_hv);
     //free the model
     free(model);
   
@@ -224,6 +228,7 @@ int main() {
     cJSON_Delete(label_json);
     free(json_string);
     free(label_string);
-
+    }
+    printf("average accuracy: %f", accuracy/8);
     return 0;
 }
