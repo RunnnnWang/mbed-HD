@@ -119,7 +119,8 @@ cJSON* parse_json(const char* json_string) {
 
 int main() {
     float accuracy = 0; 
-    for(int k = 0; k < 14; k ++){
+    int iterations = 10;
+    for(int k = 0; k < iterations; k ++){
     const char *filename = "dataNew.json";
     const char *labelfile = "label.json";
 
@@ -210,11 +211,11 @@ int main() {
 
 
     train(model);
-    printf("train ");
+    // printf("train \n");
     test(model, k, 0);
 
-    int use_higest_hv = retrain(model);
-    printf("retrain: ");
+    float use_higest_hv = retrain(model);
+    printf("%f\n", use_higest_hv);
     accuracy += test(model, k, use_higest_hv);
     //free the model
     free(model);
@@ -229,6 +230,6 @@ int main() {
     free(json_string);
     free(label_string);
     }
-    printf("average accuracy: %f", accuracy/8);
+    printf("average accuracy: %f", accuracy/iterations);
     return 0;
 }

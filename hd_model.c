@@ -182,14 +182,14 @@ float test(hdModel* model, int seed, int use_best_class_hv){
             float hv_magnitude = 0;
             float encoding_magnitude = 0;
             for(int k = 0; k < DATA_OUT_DIM; k ++){
-                if(use_best_class_hv) {
-                    dot += model->highest_class_hvs[j][k]*curr_enc[k];
-                    hv_magnitude += model->highest_class_hvs[j][k]*model->highest_class_hvs[j][k];   
-                }
-                else{
+                // if(use_best_class_hv) {
+                //     dot += model->highest_class_hvs[j][k]*curr_enc[k];
+                //     hv_magnitude += model->highest_class_hvs[j][k]*model->highest_class_hvs[j][k];   
+                // }
+                // else{
                     dot += model->class_hvs[j][k]*curr_enc[k];
                     hv_magnitude += model->class_hvs[j][k]*model->class_hvs[j][k];   
-                }
+                // }
                 encoding_magnitude += curr_enc[k]*curr_enc[k];
                 
             }
@@ -217,7 +217,7 @@ float test(hdModel* model, int seed, int use_best_class_hv){
     f1score = f1score / CLASS_AMOUNT;
     float score = (float)correct_count/(float)TEST_AMOUNT/1.0;
     
-    printf("seed %d accuracy: %f \n", seed, score);
+    // printf("seed %d accuracy: %f \n", seed, score);
     //printf("f1 score: %f \n", f1score);
     return score;
 }
@@ -228,13 +228,13 @@ float test(hdModel* model, int seed, int use_best_class_hv){
 
         
 
-int retrain(hdModel* model){
+float retrain(hdModel* model){
     float curr_accuracy = 0;
     float previous_accuracy;
     float best_accuracy = 0;
     int use_higest_hv = 0;
     int count;
-    for(int e = 0; e < 10; e++){
+    for(int e = 0; e < 8; e++){
         count = 0;
         for(int i = 0; i < TRAIN_AMOUNT; i ++){
             
@@ -279,21 +279,21 @@ int retrain(hdModel* model){
 
         curr_accuracy = test(model, 7, 0);
 
-        if(curr_accuracy >= 0.96 && curr_accuracy > best_accuracy) {
-            best_accuracy = curr_accuracy;
-            use_higest_hv = 1;
-            for(int c = 0; c < 12; c ++) {
-                for(int d = 0; d < DATA_OUT_DIM; d ++) {
-                    model->highest_class_hvs[c][d] = model->class_hvs[c][d];
-                }
-            }
-        }
+        // if(curr_accuracy >= 0.96 && curr_accuracy > best_accuracy) {
+        //     best_accuracy = curr_accuracy;
+        //     use_higest_hv = 1;
+        //     for(int c = 0; c < 12; c ++) {
+        //         for(int d = 0; d < DATA_OUT_DIM; d ++) {
+        //             model->highest_class_hvs[c][d] = model->class_hvs[c][d];
+        //         }
+        //     }
+        // }
         
-        if(previous_accuracy == curr_accuracy) {
-            return use_higest_hv;
-        }
+        // if(previous_accuracy == curr_accuracy) {
+        //     return use_higest_hv;
+        // }
         
-        previous_accuracy = curr_accuracy;
+        // previous_accuracy = curr_accuracy;
 
         // if(previous_count > count) {
         //     previous_count = count;
@@ -308,7 +308,7 @@ int retrain(hdModel* model){
         // }
     //previous_accuracy = test(model);    
     }
-    return use_higest_hv;
+    return curr_accuracy;
 }
 
 
@@ -319,7 +319,7 @@ int retrain(hdModel* model){
 
 
 void shuffle(float **array1, int *array2, int n, unsigned int seed) {
-    for (int k = 0; k < 10; k++){
+    // for (int k = 0; k < 10; k++){
         if (n > 1) {
         srand(seed);
         for (int i = 0; i < n - 1; i++) {
@@ -333,7 +333,7 @@ void shuffle(float **array1, int *array2, int n, unsigned int seed) {
             array2[i] = temp2;
             }
         }
-    }
+    // }
 }
 
 
@@ -352,11 +352,13 @@ void init_lrp(hdModel* model){
 
 void encode(hdModel* model, int index){ //x.shape = n * 1
     for (int i = 0; i < DATA_OUT_DIM; i ++) {
+        float temp = 0;
         for (int j = 0; j < DATA_IN_DIM; j ++) { 
-            model->train_encs[index][i] += model->projection[i][j]*model->X_train[index][j];
+            // model->train_encs[index][i] += model->projection[i][j]*model->X_train[index][j];
+            temp += model->projection[i][j]*model->X_train[index][j];
         }
 
-        model->train_encs[index][i] = sign(model->train_encs[index][i]);
+        model->train_encs[index][i] = sign(temp);
     }
 }
 
@@ -382,6 +384,14 @@ int sign(float num){
     if (num < 0) {
         return -1;
     }  
+    printf("sign returns 0\n");
     return 0;
 }
 
+bool boolSign(float num){
+    if (num > 0) {
+        return 1;
+    } 
+    return 0;
+
+}
