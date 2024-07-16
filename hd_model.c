@@ -1,10 +1,10 @@
 #include <hd_model.h>
 
 
-void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_test and y_test contains the whole training set, not single data point
+void init_hd_model(hdModel* hd_model, float** all_data, int* all_label, int sh){ //X_test and y_test contains the whole training set, not single data point
     
 //closed shuffle
-  shuffle(all_data, all_label, DATA_SIZE, 1); //arbitrary random state 42  
+  shuffle(all_data, all_label, DATA_SIZE, sh); //arbitrary random state 42  
 
 
     // float printMean = 0;
@@ -82,11 +82,11 @@ void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_tes
     // printf("ymean:%f, ysum:%f, ystd:%f\n", printyMean, printySum, printyStd);
 
     for (int i = 0; i < TRAIN_AMOUNT; i++){
-        hd_model->y_train[i] = (int)all_label[i];
+        hd_model->y_train[i] = (char)all_label[i];
     }
 
     for (int i = TRAIN_AMOUNT; i < DATA_SIZE; i++){
-        hd_model->y_test[i - TRAIN_AMOUNT] = (int)all_label[i];
+        hd_model->y_test[i - TRAIN_AMOUNT] = (char)all_label[i];
     }
 
 
@@ -107,10 +107,10 @@ void init_hd_model(hdModel* hd_model, float** all_data, int* all_label){ //X_tes
 
 
 void train(hdModel* model){
-    int initial_class_hv[12] = {0};
+    char initial_class_hv[12] = {0};
     for(int i = 0; i < TRAIN_AMOUNT; i ++){
         encode(model, i);
-        int label = model->y_train[i];
+        char label = model->y_train[i];
         if(!initial_class_hv[label]){
             for(int j = 0; j < DATA_OUT_DIM; j ++){
                 model->class_hvs[label][j] = model->train_encs[i][j];
@@ -119,7 +119,7 @@ void train(hdModel* model){
             continue;
         }
         //calculate cosine similarity
-        int index_pred = 0;
+        char index_pred = 0;
         float biggest_similarity = -10000;
         for(int j = 0; j < CLASS_AMOUNT; j ++){
             // if(!initial_class_hv[j]){
@@ -155,7 +155,7 @@ void train(hdModel* model){
     }
 }
 
-void test(hdModel* model){
+float test(hdModel* model){
     int correct_count = 0; 
     //true posivie, false positive, false negative
     int tp[12] = {0};
@@ -173,7 +173,7 @@ void test(hdModel* model){
         }
 
         //calculate cosine similarity
-        int index_pred = 0;
+        char index_pred = 0;
         float biggest_similarity = -10000;
         for(int j = 0; j < CLASS_AMOUNT; j ++){
             float curr_similarity = 0.0;
@@ -193,7 +193,7 @@ void test(hdModel* model){
             }
         }
 
-        int label = model->y_test[i];
+        char label = model->y_test[i];
         if(index_pred == label){
             correct_count += 1;
             tp[label] += 1;
@@ -211,7 +211,9 @@ void test(hdModel* model){
     float score = (float)correct_count/(float)TEST_AMOUNT/1.0;
     
     printf("accuracy: %f \n", score);
-    printf("f1 score: %f \n", f1score);
+    //printf("f1 score: %f \n", f1score);
+
+    return score;
 
 
     
@@ -231,10 +233,10 @@ void retrain(hdModel* model){
             for(int j = 0; j < DATA_OUT_DIM; j ++){
                 curr_enc[j] = model->train_encs[i][j];
             }
-            int label = model->y_train[i];
+            char label = model->y_train[i];
 
             //initialize pred and similairty
-            int index_pred = 0;
+            char index_pred = 0;
             float biggest_similarity = -10000;
             
             for(int j = 0; j < CLASS_AMOUNT; j ++){

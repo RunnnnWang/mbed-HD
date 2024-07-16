@@ -26,14 +26,14 @@ typedef struct {
     float train_encs[TRAIN_AMOUNT][DATA_OUT_DIM];
     float X_train[TRAIN_AMOUNT][DATA_IN_DIM];
     float X_test[TEST_AMOUNT][DATA_IN_DIM]; 
-    int y_train[TRAIN_AMOUNT];
-    int y_test[TEST_AMOUNT];
+    char y_train[TRAIN_AMOUNT];
+    char y_test[TEST_AMOUNT];
     int projection[DATA_OUT_DIM][DATA_IN_DIM]; //IN_dim = # rows, out dim = # columns; so d * n
 } hdModel;
 
-void init_hd_model(hdModel* hd_model, float** all_data, int* all_label);
+void init_hd_model(hdModel* hd_model, float** all_data, int* all_label, int sh);
 void train(hdModel* hd_model);
-void test(hdModel* hd_model);
+float test(hdModel* hd_model);
 void retrain(hdModel* hd_model);
 
 
