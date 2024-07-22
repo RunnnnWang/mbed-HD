@@ -32,6 +32,7 @@ typedef struct {
 } hdModel;
 
 void init_hd_model(hdModel* hd_model, float** all_data, int* all_label, int sh);
+void dump_init_hd_model(hdModel* hd_model, float** x_train, float** x_test, int* y_train, int* y_test);
 void train(hdModel* hd_model);
 float test(hdModel* hd_model, int seed, int use_best_class_hv);
 float retrain(hdModel* hd_model);

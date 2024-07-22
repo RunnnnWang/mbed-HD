@@ -120,34 +120,36 @@ cJSON* parse_json(const char* json_string) {
 int main() {
     float accuracy = 0; 
     int iterations = 10;
-    for(int k = 0; k < iterations; k ++){
-    const char *filename = "dataNew.json";
-    const char *labelfile = "label.json";
+    // for(int k = 0; k < iterations; k ++){
+    // const char *filename = "dataNew.json";
+    // const char *labelfile = "label.json";
 
-    char *json_string = read_file(filename);
-    char *label_string = read_file(labelfile);
-    if (json_string == NULL || label_string == NULL) {
-        return 1;
-    }
+    // char *json_string = read_file(filename);
+    // char *label_string = read_file(labelfile);
+    // if (json_string == NULL || label_string == NULL) {
+    //     return 1;
+    // }
 
 
-    cJSON *json = parse_json(json_string);
-    cJSON *label_json = parse_json(label_string);
-    if (json == NULL || label_json == NULL) {
-        free(json_string);
-        free(label_json);
-        return 1;
-    }
+    // cJSON *json = parse_json(json_string);
+    // cJSON *label_json = parse_json(label_string);
+    // if (json == NULL || label_json == NULL) {
+    //     free(json_string);
+    //     free(label_json);
+    //     return 1;
+    // }
 
     int rows, cols;
     int size;
-    float **all_data = process_2d_array(json, &rows, &cols);
-    int *all_label = process_1d_array(label_json, &size);
+    // float **all_data = process_2d_array(json, &rows, &cols);
+    // int *all_label = process_1d_array(label_json, &size);
 
 
 
     hdModel* model = malloc(sizeof(hdModel));
-    init_hd_model(model, all_data, all_label, k);
+    //init_hd_model(model, all_data, all_label, k);
+
+    
     // for(int i = 0; i < 10; i ++){
     //     int count1 = 0;
     //     int countn1 = 0;
@@ -166,8 +168,8 @@ int main() {
     // const char *projection_filename = "projection.json";
     // char *projection_string =read_file(projection_filename);
     // cJSON *parse_projection = parse_json(projection_string);
-    // int data_in;
-    // int data_out;
+    int data_in;
+    int data_out;
     // float **projection_matrix = process_2d_array(parse_projection, &data_out, &data_in);
     // // printf("s//...%d, %d\n", data_out, data_in);
     // for (int i = 0; i < DATA_OUT_DIM; i ++) {
@@ -176,22 +178,22 @@ int main() {
     //     }
     // }
 
-    // const char *Xtrain_filename = "Xtrain.json";
-    // const char *Xtest_filename = "Xtest.json";
-    // const char *Ytrain_filename = "Ytrain.json";
-    // const char *Ytest_filename = "Ytest.json";
-    // char *Xtrain_string =read_file(Xtrain_filename);
-    // char *Xtest_string =read_file(Xtest_filename);
-    // char *Ytrain_string =read_file(Ytrain_filename);
-    // char *Ytest_string =read_file(Ytest_filename);
-    // cJSON *parse_Xtrain = parse_json(Xtrain_string);
-    // cJSON *parse_Xtest = parse_json(Xtest_string);
-    // cJSON *parse_Ytrain = parse_json(Ytrain_string);
-    // cJSON *parse_Ytest = parse_json(Ytest_string);
-    // float **Xtrain = process_2d_array(parse_Xtrain, &data_out, &data_in);
-    // float **Xtest = process_2d_array(parse_Xtest, &data_out, &data_in);
-    // int *Ytrain = process_1d_array(parse_Ytrain, &data_in);
-    // int *Ytest = process_1d_array(parse_Ytest, &data_out);
+    const char *Xtrain_filename = "Xtrain.json";
+    const char *Xtest_filename = "Xtest.json";
+    const char *Ytrain_filename = "Ytrain.json";
+    const char *Ytest_filename = "Ytest.json";
+    char *Xtrain_string =read_file(Xtrain_filename);
+    char *Xtest_string =read_file(Xtest_filename);
+    char *Ytrain_string =read_file(Ytrain_filename);
+    char *Ytest_string =read_file(Ytest_filename);
+    cJSON *parse_Xtrain = parse_json(Xtrain_string);
+    cJSON *parse_Xtest = parse_json(Xtest_string);
+    cJSON *parse_Ytrain = parse_json(Ytrain_string);
+    cJSON *parse_Ytest = parse_json(Ytest_string);
+    float **Xtrain = process_2d_array(parse_Xtrain, &data_out, &data_in);
+    float **Xtest = process_2d_array(parse_Xtest, &data_out, &data_in);
+    int *Ytrain = process_1d_array(parse_Ytrain, &data_in);
+    int *Ytest = process_1d_array(parse_Ytest, &data_out);
     // for (int i = 0; i < TRAIN_AMOUNT; i ++) {
     //     for (int j = 0; j < DATA_IN_DIM; j ++) {
     //         model->X_train[i][j] = Xtrain[i][j];
@@ -209,25 +211,48 @@ int main() {
     //     model->y_test[i] = Ytest[i];
     // }
 
+    dump_init_hd_model(model, Xtrain, Xtest, Ytrain, Ytest);
+
     train(model);
-    test(model, k, 0);
+    test(model, 0, 0);
 
     float use_higest_hv = retrain(model);
     printf("%f\n", use_higest_hv);
-    accuracy += test(model, k, use_higest_hv);
+    accuracy += test(model, 0, use_higest_hv);
     //free the model
     free(model);
   
     //free the original data
-    free(all_data);
-    free(all_label);
+    // free(all_data);
+    // free(all_label);
+
+
+    free(Xtrain);
+    free(Xtest);
+    free(Ytrain);
+    free(Ytest);
+
+    free(Xtrain_filename);
+    free(Xtest_filename);
+    free(Ytrain_filename);
+    free(Ytest_filename);
+
+    cJSON_Delete(parse_Xtrain);
+    cJSON_Delete(parse_Xtest);
+    cJSON_Delete(parse_Ytrain);
+    cJSON_Delete(parse_Ytest);
 
     //delete reading in the data
-    cJSON_Delete(json);
-    cJSON_Delete(label_json);
-    free(json_string);
-    free(label_string);
-    }
-    printf("average accuracy: %f", accuracy/iterations);
+    // cJSON_Delete(json);
+    // cJSON_Delete(label_json);
+    // free(json_string);
+    // free(label_string);
+
+    free(Xtrain_string);
+    free(Xtest_string);
+    free(Ytrain_string);
+    free(Ytest_string);
+    
+    //printf("average accuracy: %f", accuracy/iterations);
     return 0;
 }

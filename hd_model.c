@@ -103,7 +103,34 @@ void init_hd_model(hdModel* hd_model, float** all_data, int* all_label, int sh){
 
     
 
+void dump_init_hd_model(hdModel* hd_model, float** x_train, float** x_test, int* y_train, int* y_test){
 
+    for (int i = 0; i < TRAIN_AMOUNT; i++){
+        for (int j = 0; j < DATA_IN_DIM; j ++) {
+            hd_model->X_train[i][j] = x_train[i][j];
+        }
+        hd_model->y_train[i] = (char)y_train[i];
+    }
+
+    for(int i = 0; i < TEST_AMOUNT; i ++){
+        for(int j = 0; j < DATA_IN_DIM; j ++){
+            hd_model->X_test[i][j] = x_test[i][j]; 
+        }
+        hd_model->y_test[i] = (char)y_test[i];
+    }
+
+
+    //initialize class hvs
+    for(int i = 0; i < 12; i ++){
+        for(int j = 0; j < DATA_OUT_DIM; j ++){
+            hd_model->class_hvs[i][j] = 0;
+        }
+    }
+
+    //initialize linear random projection
+    init_lrp(hd_model);
+
+}
 
 
 void train(hdModel* model){
