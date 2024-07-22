@@ -111,13 +111,13 @@ void train(hdModel* model){
     for(int i = 0; i < TRAIN_AMOUNT; i ++){
         encode(model, i);
         int label = model->y_train[i];
-        if(!initial_class_hv[label]){
-            for(int j = 0; j < DATA_OUT_DIM; j ++){
-                model->class_hvs[label][j] = model->train_encs[i][j];
-            }
-            initial_class_hv[label] = 1;
-            continue;
-        }
+        // if(!initial_class_hv[label]){
+        //     for(int j = 0; j < DATA_OUT_DIM; j ++){
+        //         model->class_hvs[label][j] = model->train_encs[i][j];
+        //     }
+        //     initial_class_hv[label] = 1;
+        //     continue;
+        // }
         //calculate cosine similarity
         int index_pred = 0;
         float biggest_similarity = -10000;
@@ -131,9 +131,16 @@ void train(hdModel* model){
             float hv_magnitude = 0;
             float encoding_magnitude = 0;
             for(int k = 0; k < DATA_OUT_DIM; k ++){
-                dot += model->class_hvs[j][k] * model->train_encs[i][k];
+
                 hv_magnitude += model->class_hvs[j][k]*model->class_hvs[j][k];
-                encoding_magnitude += model->train_encs[i][k]*model->train_encs[i][k];
+                if (model->train_encs[i][k/8] & (0b00000001 << (k%8))){
+                    dot += model->class_hvs[j][k];
+                } else {
+                    dot -= model->class_hvs[j][k];
+                }
+                // dot += model->class_hvs[j][k] * model->train_encs[i][k];
+                // encoding_magnitude += model->train_encs[i][k]*model->train_encs[i][k];
+                encoding_magnitude += 1;
             }
             curr_similarity = dot/(sqrt(hv_magnitude)*sqrt(encoding_magnitude));
             // printf("cosine similarity: %f\n", curr_similarity);
@@ -147,9 +154,16 @@ void train(hdModel* model){
 
         // if(index_pred != label){
             //add encoding + subtract encoding + append to 
-            for(int j = 0; j < DATA_OUT_DIM; j ++){
-                model->class_hvs[label][j] +=  model->train_encs[i][j];
-                model->class_hvs[index_pred][j] -= model->train_encs[i][j];
+        for(int j = 0; j < DATA_OUT_DIM; j ++){
+            if (model->train_encs[i][j/8] & (0b00000001 << (j%8))){
+                model->class_hvs[label][j] +=  1;
+                model->class_hvs[index_pred][j] -= 1;
+            } else {
+                model->class_hvs[label][j] +=  -1;
+                model->class_hvs[index_pred][j] -= -1;
+            }
+            // model->class_hvs[label][j] +=  model->train_encs[i][j];
+            // model->class_hvs[index_pred][j] -= model->train_encs[i][j];
             // }
         }
     }
@@ -234,14 +248,19 @@ float retrain(hdModel* model){
     float best_accuracy = 0;
     int use_higest_hv = 0;
     int count;
-    for(int e = 0; e < 8; e++){
+    for(int e = 0; e < 4; e++){
         count = 0;
         for(int i = 0; i < TRAIN_AMOUNT; i ++){
             
             //get encoding + label
             int curr_enc[DATA_OUT_DIM];
             for(int j = 0; j < DATA_OUT_DIM; j ++){
-                curr_enc[j] = model->train_encs[i][j];
+                if (model->train_encs[i][j/8] & (0b00000001 << (j%8))){
+                    curr_enc[j] = 1;
+                } else {
+                    curr_enc[j] = -1;
+                }
+                // curr_enc[j] = model->train_encs[i][j];
             }
             int label = model->y_train[i];
 
@@ -357,8 +376,12 @@ void encode(hdModel* model, int index){ //x.shape = n * 1
             // model->train_encs[index][i] += model->projection[i][j]*model->X_train[index][j];
             temp += model->projection[i][j]*model->X_train[index][j];
         }
-
-        model->train_encs[index][i] = sign(temp);
+        if (sign(temp) == 1){
+            model->train_encs[index][i/8] =  model->train_encs[index][i/8] | (0b00000001 << (i % 8));
+        } else {
+            model->train_encs[index][i/8] =  model->train_encs[index][i/8] & (~(0b00000001 << (i % 8)));
+        }
+        // model->train_encs[index][i] = sign(temp);
     }
 }
 
@@ -388,10 +411,5 @@ int sign(float num){
     return 0;
 }
 
-bool boolSign(float num){
-    if (num > 0) {
-        return 1;
-    } 
-    return 0;
 
-}
+

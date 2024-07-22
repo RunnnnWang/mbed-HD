@@ -209,9 +209,7 @@ int main() {
     //     model->y_test[i] = Ytest[i];
     // }
 
-
     train(model);
-    // printf("train \n");
     test(model, k, 0);
 
     float use_higest_hv = retrain(model);
