@@ -181,8 +181,13 @@ float test(hdModel* model, int seed, int use_best_class_hv){
         //encode
         for (int j = 0; j < DATA_OUT_DIM; j ++) {
             for (int k = 0; k< DATA_IN_DIM; k ++) { 
-                curr_enc[j] += model->projection[j][k]*model->X_test[i][k];
-        }
+                if (model->projection[j][k/8] & (0b00000001 << (k%8))){
+                    curr_enc[j] += model->X_test[i][k];
+                } else {
+                    curr_enc[j] -= model->X_test[i][k];                    
+                }
+                // curr_enc[j] += model->projection[j][k]*model->X_test[i][k];
+            }
             curr_enc[j] = sign(curr_enc[j]);
         }
 
@@ -364,7 +369,12 @@ void init_lrp(hdModel* model){
     //init projection D*n
     for (int i = 0; i < DATA_OUT_DIM; i ++) {
         for (int j = 0; j < DATA_IN_DIM; j ++) {
-            model->projection[i][j] = sign(generate_normal_random_float());
+            if (sign(generate_normal_random_float()) == 1){
+                model->projection[i][j/8] = model->projection[i][j/8] | (0b00000001 << (j % 8));
+            } else {                
+                model->projection[i][j/8] = model->projection[i][j/8] & (~(0b00000001 << (j % 8)));
+            }
+            // model->projection[i][j] = sign(generate_normal_random_float());
         }
     }
 }
@@ -374,7 +384,12 @@ void encode(hdModel* model, int index){ //x.shape = n * 1
         float temp = 0;
         for (int j = 0; j < DATA_IN_DIM; j ++) { 
             // model->train_encs[index][i] += model->projection[i][j]*model->X_train[index][j];
-            temp += model->projection[i][j]*model->X_train[index][j];
+            if (model->projection[i][j/8] & (0b00000001 << (j%8))){
+                temp += model->X_train[index][j];
+            } else {
+                temp -= model->X_train[index][j];
+            }
+            // temp += model->projection[i][j]*model->X_train[index][j];
         }
         if (sign(temp) == 1){
             model->train_encs[index][i/8] =  model->train_encs[index][i/8] | (0b00000001 << (i % 8));

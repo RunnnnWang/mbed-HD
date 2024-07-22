@@ -26,7 +26,7 @@ typedef struct {
     float X_test[TEST_AMOUNT][DATA_IN_DIM];  // 32 * 684 * 256 = 5,603,328
     signed char y_train[TRAIN_AMOUNT]; // 8 * 1596 = 12,768
     signed char y_test[TEST_AMOUNT]; // 8 * 684 = 5,472
-    signed char projection[DATA_OUT_DIM][DATA_IN_DIM]; //8 * 10000 * 256 = 20,480,000   IN_dim = # rows, out dim = # columns; so d * n
+    signed char projection[DATA_OUT_DIM][DATA_IN_DIM/8]; //8 * 10000 * 256 = 20,480,000   IN_dim = # rows, out dim = # columns; so d * n
     //167,951,568
     //20,993,946
 } hdModel;
