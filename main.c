@@ -232,10 +232,6 @@ int main() {
     free(Ytrain);
     free(Ytest);
 
-    free(Xtrain_filename);
-    free(Xtest_filename);
-    free(Ytrain_filename);
-    free(Ytest_filename);
 
     cJSON_Delete(parse_Xtrain);
     cJSON_Delete(parse_Xtest);
