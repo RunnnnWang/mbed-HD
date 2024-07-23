@@ -103,7 +103,7 @@ void init_hd_model(hdModel* hd_model, float** all_data, int* all_label, int sh){
 
     
 
-void dump_init_hd_model(hdModel* hd_model, float** x_train, float** x_test, int* y_train, int* y_test){
+void dump_init_hd_model_projection(hdModel* hd_model, float** x_train, float** x_test, int* y_train, int* y_test, char** linear_projection){
 
     for (int i = 0; i < TRAIN_AMOUNT; i++){
         for (int j = 0; j < DATA_IN_DIM; j ++) {
@@ -130,8 +130,51 @@ void dump_init_hd_model(hdModel* hd_model, float** x_train, float** x_test, int*
     //initialize linear random projection
     init_lrp(hd_model);
 
+
+    //dump linear random projection
+    // for(int i = 0; i < DATA_OUT_DIM; i ++){
+    //     for(int j = 0; j < DATA_IN_DIM; j ++){
+    //         if ((linear_projection[i][j]) == 1){
+    //             hd_model->projection[i][j/8] = hd_model->projection[i][j/8] | (0b00000001 << (j % 8));
+    //         } else {                
+    //             hd_model->projection[i][j/8] = hd_model->projection[i][j/8] & (~(0b00000001 << (j % 8)));
+    //         }
+    //     }
+    // }
+
+
+
+
+
 }
 
+
+void dump_init_hd_model(hdModel* hd_model, float** x_train, float** x_test, int* y_train, int* y_test){
+    for (int i = 0; i < TRAIN_AMOUNT; i++){
+        for (int j = 0; j < DATA_IN_DIM; j ++) {
+            hd_model->X_train[i][j] = x_train[i][j];
+        }
+        hd_model->y_train[i] = (char)y_train[i];
+    }
+
+    for(int i = 0; i < TEST_AMOUNT; i ++){
+        for(int j = 0; j < DATA_IN_DIM; j ++){
+            hd_model->X_test[i][j] = x_test[i][j]; 
+        }
+        hd_model->y_test[i] = (char)y_test[i];
+    }
+
+
+    //initialize class hvs
+    for(int i = 0; i < 12; i ++){
+        for(int j = 0; j < DATA_OUT_DIM; j ++){
+            hd_model->class_hvs[i][j] = 0;
+        }
+    }
+
+    //initialize linear random projection
+    init_lrp(hd_model);
+}
 
 void train(hdModel* model){
     int initial_class_hv[12] = {0};
@@ -406,6 +449,8 @@ void init_lrp(hdModel* model){
     }
 }
 
+
+
 void encode(hdModel* model, int index){ //x.shape = n * 1
     for (int i = 0; i < DATA_OUT_DIM; i ++) {
         float temp = 0;
@@ -449,7 +494,7 @@ int sign(float num){
     if (num < 0) {
         return -1;
     }  
-    printf("sign returns 0\n");
+    //printf("sign returns 0\n");
     return 0;
 }
 
