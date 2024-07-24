@@ -187,17 +187,17 @@ int main() {
     char *Xtest_string =read_file(Xtest_filename);
     char *Ytrain_string =read_file(Ytrain_filename);
     char *Ytest_string =read_file(Ytest_filename);
-    //char *Projfection_string =read_file(Projfection_filename);
+    char *Projfection_string =read_file(Projfection_filename);
     cJSON *parse_Xtrain = parse_json(Xtrain_string);
     cJSON *parse_Xtest = parse_json(Xtest_string);
     cJSON *parse_Ytrain = parse_json(Ytrain_string);
     cJSON *parse_Ytest = parse_json(Ytest_string);
-    //cJSON *parse_Projection = parse_json(Projfection_string);
+    cJSON *parse_Projection = parse_json(Projfection_string);
     float **Xtrain = process_2d_array(parse_Xtrain, &data_out, &data_in);
     float **Xtest = process_2d_array(parse_Xtest, &data_out, &data_in);
     int *Ytrain = process_1d_array(parse_Ytrain, &data_in);
     int *Ytest = process_1d_array(parse_Ytest, &data_out);
-    //char **Projection = process_2d_array(parse_Projection, &data_out, &data_in);
+    float **Projection = process_2d_array(parse_Projection, &data_out, &data_in);
     // for (int i = 0; i < TRAIN_AMOUNT; i ++) {
     //     for (int j = 0; j < DATA_IN_DIM; j ++) {
     //         model->X_train[i][j] = Xtrain[i][j];
@@ -215,10 +215,14 @@ int main() {
     //     model->y_test[i] = Ytest[i];
     // }
 
-    dump_init_hd_model(model, Xtrain, Xtest, Ytrain, Ytest);
+    // dump_init_hd_model(model, Xtrain, Xtest, Ytrain, Ytest);
+    dump_init_hd_model_projection(model, Xtrain, Xtest, Ytrain, Ytest, Projection);
+    //dump_init_
+
 
     train(model);
-    test(model, 0, 0);
+    float train_accuracy = test(model, 0, 0);
+    printf("%f\n", train_accuracy);
 
     float use_higest_hv = retrain(model);
     printf("%f\n", use_higest_hv);
@@ -235,12 +239,14 @@ int main() {
     free(Xtest);
     free(Ytrain);
     free(Ytest);
+    free(Projection);
 
 
     cJSON_Delete(parse_Xtrain);
     cJSON_Delete(parse_Xtest);
     cJSON_Delete(parse_Ytrain);
     cJSON_Delete(parse_Ytest);
+    cJSON_Delete(parse_Projection);
 
     //delete reading in the data
     // cJSON_Delete(json);
@@ -252,6 +258,7 @@ int main() {
     free(Xtest_string);
     free(Ytrain_string);
     free(Ytest_string);
+    free(Projfection_string);
     
     //printf("average accuracy: %f", accuracy/iterations);
     return 0;

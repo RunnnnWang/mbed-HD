@@ -103,7 +103,7 @@ void init_hd_model(hdModel* hd_model, float** all_data, int* all_label, int sh){
 
     
 
-void dump_init_hd_model_projection(hdModel* hd_model, float** x_train, float** x_test, int* y_train, int* y_test, char** linear_projection){
+void dump_init_hd_model_projection(hdModel* hd_model, float** x_train, float** x_test, int* y_train, int* y_test, float** linear_projection){
 
     for (int i = 0; i < TRAIN_AMOUNT; i++){
         for (int j = 0; j < DATA_IN_DIM; j ++) {
@@ -127,20 +127,17 @@ void dump_init_hd_model_projection(hdModel* hd_model, float** x_train, float** x
         }
     }
 
-    //initialize linear random projection
-    init_lrp(hd_model);
-
 
     //dump linear random projection
-    // for(int i = 0; i < DATA_OUT_DIM; i ++){
-    //     for(int j = 0; j < DATA_IN_DIM; j ++){
-    //         if ((linear_projection[i][j]) == 1){
-    //             hd_model->projection[i][j/8] = hd_model->projection[i][j/8] | (0b00000001 << (j % 8));
-    //         } else {                
-    //             hd_model->projection[i][j/8] = hd_model->projection[i][j/8] & (~(0b00000001 << (j % 8)));
-    //         }
-    //     }
-    // }
+    for(int i = 0; i < DATA_OUT_DIM; i ++){
+        for(int j = 0; j < DATA_IN_DIM; j ++){
+            if ((linear_projection[i][j]) == 1){
+                hd_model->projection[i][j/8] = hd_model->projection[i][j/8] | (0b00000001 << (j % 8));
+            } else {                
+                hd_model->projection[i][j/8] = hd_model->projection[i][j/8] & (~(0b00000001 << (j % 8)));
+            }
+        }
+    }
 
 
 
@@ -174,6 +171,11 @@ void dump_init_hd_model(hdModel* hd_model, float** x_train, float** x_test, int*
 
     //initialize linear random projection
     init_lrp(hd_model);
+}
+
+
+void dump_trained_hd_model(hdModel* hd_model, float** x_train, float** x_test, int* y_train, int* y_test, char** linear_projection, char** class_hvs){
+
 }
 
 void train(hdModel* model){
