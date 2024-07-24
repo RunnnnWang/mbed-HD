@@ -91,7 +91,7 @@ void init_hd_model(hdModel* hd_model, float** all_data, int* all_label, int sh){
 
 
     //initialize class hvs
-    for(int i = 0; i < 12; i ++)
+    for(int i = 0; i < CLASS_AMOUNT; i ++)
         for(int j = 0; j < DATA_OUT_DIM; j ++){
             hd_model->class_hvs[i][j] = 0;
         }
@@ -121,7 +121,7 @@ void dump_init_hd_model_projection(hdModel* hd_model, float** x_train, float** x
 
 
     //initialize class hvs
-    for(int i = 0; i < 12; i ++){
+    for(int i = 0; i < CLASS_AMOUNT; i ++){
         for(int j = 0; j < DATA_OUT_DIM; j ++){
             hd_model->class_hvs[i][j] = 0;
         }
@@ -132,9 +132,9 @@ void dump_init_hd_model_projection(hdModel* hd_model, float** x_train, float** x
     for(int i = 0; i < DATA_OUT_DIM; i ++){
         for(int j = 0; j < DATA_IN_DIM; j ++){
             if ((linear_projection[i][j]) == 1){
-                hd_model->projection[i][j/8] = hd_model->projection[i][j/8] | (0b00000001 << (j % 8));
+                hd_model->projection[i][j/8] = hd_model->projection[i][j/8] | (0b10000000 >> (j % 8));
             } else {                
-                hd_model->projection[i][j/8] = hd_model->projection[i][j/8] & (~(0b00000001 << (j % 8)));
+                hd_model->projection[i][j/8] = hd_model->projection[i][j/8] & (~(0b10000000 >> (j % 8)));
             }
         }
     }
@@ -163,7 +163,7 @@ void dump_init_hd_model(hdModel* hd_model, float** x_train, float** x_test, int*
 
 
     //initialize class hvs
-    for(int i = 0; i < 12; i ++){
+    for(int i = 0; i < CLASS_AMOUNT; i ++){
         for(int j = 0; j < DATA_OUT_DIM; j ++){
             hd_model->class_hvs[i][j] = 0;
         }
@@ -201,20 +201,18 @@ void train(hdModel* model){
             //dot product of the class hv and encoding, magnitude of the class hv and encoding
             int dot = 0;   
             float hv_magnitude = 0;
-            float encoding_magnitude = 0;
             for(int k = 0; k < DATA_OUT_DIM; k ++){
 
                 hv_magnitude += model->class_hvs[j][k]*model->class_hvs[j][k];
-                if (model->train_encs[i][k/8] & (0b00000001 << (k%8))){
+                if (model->train_encs[i][k/8] & (0b10000000 >> (k%8))){
                     dot += model->class_hvs[j][k];
                 } else {
                     dot -= model->class_hvs[j][k];
                 }
                 // dot += model->class_hvs[j][k] * model->train_encs[i][k];
                 // encoding_magnitude += model->train_encs[i][k]*model->train_encs[i][k];
-                encoding_magnitude += 1;
             }
-            curr_similarity = dot/(sqrt(hv_magnitude)*sqrt(encoding_magnitude));
+            curr_similarity = dot/(sqrt(hv_magnitude)*sqrt(DATA_OUT_DIM));
             // printf("cosine similarity: %f\n", curr_similarity);
             if(curr_similarity > biggest_similarity){
                 index_pred = j;
@@ -227,7 +225,7 @@ void train(hdModel* model){
         // if(index_pred != label){
             //add encoding + subtract encoding + append to 
         for(int j = 0; j < DATA_OUT_DIM; j ++){
-            if (model->train_encs[i][j/8] & (0b00000001 << (j%8))){
+            if (model->train_encs[i][j/8] & (0b10000000 >> (j%8))){
                 model->class_hvs[label][j] +=  1;
                 model->class_hvs[index_pred][j] -= 1;
             } else {
@@ -244,16 +242,16 @@ void train(hdModel* model){
 float test(hdModel* model, int seed, int use_best_class_hv){
     int correct_count = 0; 
     //true posivie, false positive, false negative
-    int tp[12] = {0};
-    int fp[12] = {0};
-    int fn[12] = {0};
+    int tp[CLASS_AMOUNT] = {0};
+    int fp[CLASS_AMOUNT] = {0};
+    int fn[CLASS_AMOUNT] = {0};
     for(int i = 0; i < TEST_AMOUNT; i++){
         
         float curr_enc[DATA_OUT_DIM] = {0};
         //encode
         for (int j = 0; j < DATA_OUT_DIM; j ++) {
             for (int k = 0; k< DATA_IN_DIM; k ++) { 
-                if (model->projection[j][k/8] & (0b00000001 << (k%8))){
+                if (model->projection[j][k/8] & (0b10000000 >> (k%8))){
                     curr_enc[j] += model->X_test[i][k];
                 } else {
                     curr_enc[j] -= model->X_test[i][k];                    
@@ -332,7 +330,7 @@ float retrain(hdModel* model){
             //get encoding + label
             int curr_enc[DATA_OUT_DIM];
             for(int j = 0; j < DATA_OUT_DIM; j ++){
-                if (model->train_encs[i][j/8] & (0b00000001 << (j%8))){
+                if (model->train_encs[i][j/8] & (0b10000000 >> (j%8))){
                     curr_enc[j] = 1;
                 } else {
                     curr_enc[j] = -1;
@@ -378,7 +376,7 @@ float retrain(hdModel* model){
         // if(curr_accuracy >= 0.96 && curr_accuracy > best_accuracy) {
         //     best_accuracy = curr_accuracy;
         //     use_higest_hv = 1;
-        //     for(int c = 0; c < 12; c ++) {
+        //     for(int c = 0; c < CLASS_AMOUNT; c ++) {
         //         for(int d = 0; d < DATA_OUT_DIM; d ++) {
         //             model->highest_class_hvs[c][d] = model->class_hvs[c][d];
         //         }
@@ -442,9 +440,9 @@ void init_lrp(hdModel* model){
     for (int i = 0; i < DATA_OUT_DIM; i ++) {
         for (int j = 0; j < DATA_IN_DIM; j ++) {
             if (sign(generate_normal_random_float()) == 1){
-                model->projection[i][j/8] = model->projection[i][j/8] | (0b00000001 << (j % 8));
+                model->projection[i][j/8] = model->projection[i][j/8] | (0b10000000 >> (j % 8));
             } else {                
-                model->projection[i][j/8] = model->projection[i][j/8] & (~(0b00000001 << (j % 8)));
+                model->projection[i][j/8] = model->projection[i][j/8] & (~(0b10000000 >> (j % 8)));
             }
             // model->projection[i][j] = sign(generate_normal_random_float());
         }
@@ -458,7 +456,7 @@ void encode(hdModel* model, int index){ //x.shape = n * 1
         float temp = 0;
         for (int j = 0; j < DATA_IN_DIM; j ++) { 
             // model->train_encs[index][i] += model->projection[i][j]*model->X_train[index][j];
-            if (model->projection[i][j/8] & (0b00000001 << (j%8))){
+            if (model->projection[i][j/8] & (0b10000000 >> (j%8))){
                 temp += model->X_train[index][j];
             } else {
                 temp -= model->X_train[index][j];
@@ -466,9 +464,9 @@ void encode(hdModel* model, int index){ //x.shape = n * 1
             // temp += model->projection[i][j]*model->X_train[index][j];
         }
         if (sign(temp) == 1){
-            model->train_encs[index][i/8] =  model->train_encs[index][i/8] | (0b00000001 << (i % 8));
+            model->train_encs[index][i/8] =  model->train_encs[index][i/8] | (0b10000000 >> (i % 8));
         } else {
-            model->train_encs[index][i/8] =  model->train_encs[index][i/8] & (~(0b00000001 << (i % 8)));
+            model->train_encs[index][i/8] =  model->train_encs[index][i/8] & (~(0b10000000 >> (i % 8)));
         }
         // model->train_encs[index][i] = sign(temp);
     }

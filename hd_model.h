@@ -23,8 +23,8 @@ typedef struct {
     signed char class_hvs[CLASS_AMOUNT][DATA_OUT_DIM];//8 * 12 * 10000 = 960,000
     // signed char highest_class_hvs[CLASS_AMOUNT][DATA_OUT_DIM];
     signed char train_encs[TRAIN_AMOUNT][DATA_OUT_DIM/8]; // 8 * 1596 * 10000 =127，890,000
-    signed char X_train[TRAIN_AMOUNT][DATA_IN_DIM]; // 32 * 1596 * 256 = 13,000, 000
-    signed char X_test[TEST_AMOUNT][DATA_IN_DIM];  // 32 * 684 * 256 = 5,603,328
+    float X_train[TRAIN_AMOUNT][DATA_IN_DIM]; // 32 * 1596 * 256 = 13,000, 000
+    float X_test[TEST_AMOUNT][DATA_IN_DIM];  // 32 * 684 * 256 = 5,603,328
     signed char y_train[TRAIN_AMOUNT]; // 8 * 1596 = 12,768
     signed char y_test[TEST_AMOUNT]; // 8 * 684 = 5,472
     signed char projection[DATA_OUT_DIM][DATA_IN_DIM/8]; //8 * 10000 * 256 = 20,480,000   IN_dim = # rows, out dim = # columns; so d * n

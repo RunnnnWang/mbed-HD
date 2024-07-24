@@ -226,7 +226,7 @@ int main() {
 
     float use_higest_hv = retrain(model);
     printf("%f\n", use_higest_hv);
-    accuracy += test(model, 0, use_higest_hv);
+    //accuracy += test(model, 0, use_higest_hv);
     //free the model
     free(model);
   
