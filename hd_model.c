@@ -1,5 +1,20 @@
 #include <hd_model.h>
 
+const signed char train_label = 3;
+
+const float x_retrain[DATA_IN_DIM] = {
+    -0.12909097828912677, -0.4578939148901624, -0.6241359698942939, -0.771266858930028, -0.9925912322704967, -0.4813178178402741, -0.4048313886115658, -0.5251289879682275, 0.0833914105961024, 0.4113938342794028, 0.11493816247729205, -0.18939856864151888,
+    0.019235293893613968, -0.005053547263827214, 0.29100534446509446, 0.4735532611283625, 0.5198973551394058, 0.48409496784997413, 0.7765239492588644, 0.9150801783359441, 0.8626642711962594, 0.6713889676382261, 0.6060258537166033, 0.5776891105590992,
+    0.9463621205966911, 1.318226252204711, 1.4358610603740365, 1.167792614741294, 0.9987518471393239, 0.8961434845839228, 0.9719638324603503, 0.8353803353284919, 0.899836028807341, 0.9704366411635789, 0.7934966480121594, 0.6419098143639642,
+    0.6101186360996889, 0.7172290535759084, 0.670353864860789, 0.6235124128498486, 0.6640786024920367, 0.6022357011936665, 0.45466339697910696, 0.37369930608898383, 0.4028881472755335, 0.3924844512739299, 0.5357075387128005, 0.5143599070468471,
+    0.366363741032169, 0.33208485171501223, 0.4549444966725799, 0.7009519357689574, 0.6563650386861554, 0.5650064316722847, 0.497856800711801, 0.40788060843088664, 0.39533163643494035, 0.31218084927998635, 0.31398907718996305, 0.16018841749550042,
+    -0.5206363238313683, -0.5174111220822918, -0.4610687042931936, -0.43092016291525326, -0.44636560917049, -0.48824009094591, -0.10311527348517809, -0.1579842431553504, -0.3477377309043182, 0.3391537675492228, 0.2815268949438121, -0.29079413509352314,
+    -0.01059406286054971, 0.07811213343734483, -0.05389328157168069, -0.07937823702289072, 0.03313635095810596, -0.3077257530441721, -0.43179800600412827, -0.3237340844529051, -0.49643396726904526, -0.36681550597251406, -0.15388154100981818,
+    0.08789602939481055, 0.26464124977432285, 0.5003731158512703, 0.4606723432378833, 0.2796439106168008, 0.25997583097715693, -0.15703457610554156, -0.23097598727679733, -0.10421534958072905, -0.16367998545594095, -0.260729732804809, -0.05063113526978768,
+    -0.190065586474718, -0.12756813453304922, -0.11047607355364872, -0.12395086220557111, -0.17872907909155494, -0.019796791101612535, 0.018087459396705648, 0.13776021300487126, -0.07085450499843346, -0.3675520682673394, -0.302700209962457,
+    -0.2043672284436126, -0.46379002099203376, -0.38614930703507366, -0.2041868813739004, 0.09265624771471935, 0.4625128153740794, 0.5620718740105887, 0.4825883577972121, 0.5254591959481127, 0.49652582728400524, 0.11611825200556007,
+    0.058913223440277655, 0.35259339455102084, 0.33237928404826705, 0.40911560590398816, 0.4992572985516497, 0.623603368733376, 0.744903551033047, 0.2252596462048904, -0.3276967141730706, -0.14217833231212537, -0.33480120815337877
+};
 
 void init_hd_model(hdModel* hd_model, float** all_data, int* all_label, int sh){ //X_test and y_test contains the whole training set, not single data point
     
@@ -174,9 +189,48 @@ void dump_init_hd_model(hdModel* hd_model, float** x_train, float** x_test, int*
 }
 
 
-void dump_trained_hd_model(hdModel* hd_model, float** x_train, float** x_test, int* y_train, int* y_test, char** linear_projection, char** class_hvs){
+// void dump_trained_hd_model(hdModel* hd_model, float** x_train, float** x_test, int* y_train, int* y_test, float** linear_projection, float** class_hvs){
+//     for (int i = 0; i < TRAIN_AMOUNT; i++){
+//         for (int j = 0; j < DATA_IN_DIM; j ++) {
+//             hd_model->X_train[i][j] = x_train[i][j];
+//         }
+//         hd_model->y_train[i] = (char)y_train[i];
+//     }
 
-}
+//     for(int i = 0; i < TEST_AMOUNT; i ++){
+//         for(int j = 0; j < DATA_IN_DIM; j ++){
+//             hd_model->X_test[i][j] = x_test[i][j]; 
+//         }
+//         hd_model->y_test[i] = (char)y_test[i];
+//     }
+
+
+//     //initialize class hvs
+//     for(int i = 0; i < CLASS_AMOUNT; i ++){
+//         for(int j = 0; j < DATA_OUT_DIM; j ++){
+//             hd_model->class_hvs[i][j] = 0;
+//         }
+//     }
+
+
+//     //dump linear random projection
+//     for(int i = 0; i < DATA_OUT_DIM; i ++){
+//         for(int j = 0; j < DATA_IN_DIM; j ++){
+//             if ((linear_projection[i][j]) == 1){
+//                 hd_model->projection[i][j/8] = hd_model->projection[i][j/8] | (0b10000000 >> (j % 8));
+//             } else {                
+//                 hd_model->projection[i][j/8] = hd_model->projection[i][j/8] & (~(0b10000000 >> (j % 8)));
+//             }
+//         }
+//     }
+
+//     //dump class hvs 
+//     for(int i = 0; i < CLASS_AMOUNT; i ++){
+//         for(int j = 0; j < DATA_OUT_DIM; j ++){
+//                 hd_model->class_hvs[i][j/8] = hd_model->projection[i][j/8] | (0b10000000 >> (j % 8));
+//         }
+//     }
+// }
 
 void train(hdModel* model){
     int initial_class_hv[12] = {0};
@@ -403,6 +457,78 @@ float retrain(hdModel* model){
     //previous_accuracy = test(model);    
     }
     return curr_accuracy;
+}
+
+
+void retrain_small(hdModel* model){
+    // for(int i = 0; i < TRAIN_AMOUNT; i ++){
+            
+            // encoding + label
+            signed char curr_enc[DATA_OUT_DIM];
+            // for(int j = 0; j < DATA_OUT_DIM; j ++){
+            //     if (retrain_data[j/8] & (0b10000000 >> (j%8))){
+            //         curr_enc[j] = 1;
+            //     } else {
+            //         curr_enc[j] = -1;
+            //     }
+            //     // curr_enc[j] = model->train_encs[i][j];
+            // }
+
+            //calculate encoding
+
+        for (int i = 0; i < DATA_OUT_DIM; i ++) {
+            float temp = 0;
+        for (int j = 0; j < DATA_IN_DIM; j ++) { 
+            // model->train_encs[index][i] += model->projection[i][j]*model->X_train[index][j];
+            if (model->projection[i][j/8] & (0b10000000 >> (j%8))){
+                temp += x_retrain[j];
+            } else {
+                temp -= x_retrain[j];
+            }
+            // temp += model->projection[i][j]*model->X_train[index][j];
+        }
+        if (sign(temp) == 1){
+            curr_enc[i/8] =  curr_enc[i/8] | (0b10000000 >> (i % 8));
+        } else {
+            curr_enc[i/8] =  curr_enc[i/8] & (~(0b10000000 >> (i % 8)));
+        }
+        // model->train_encs[index][i] = sign(temp);
+    }
+        
+
+
+
+
+            //initialize pred and similairty
+            int index_pred = 0;
+            float biggest_similarity = -10000;
+            
+            for(int j = 0; j < CLASS_AMOUNT; j ++){
+                float curr_similarity = 0.0;
+            //dot product of the class hv and encoding, magnitude of the class hv and encoding
+                int dot = 0; 
+                float hv_magnitude = 0;
+                float encoding_magnitude = 0;
+                for(int k = 0; k < DATA_OUT_DIM; k ++){
+                    dot += model->class_hvs[j][k]*curr_enc[k];
+                    hv_magnitude += model->class_hvs[j][k]*model->class_hvs[j][k];
+                    encoding_magnitude += curr_enc[k]*curr_enc[k];
+                }
+                curr_similarity = dot/(sqrt(hv_magnitude)*sqrt(encoding_magnitude));
+                if(curr_similarity > biggest_similarity){
+                    index_pred = j;
+                    biggest_similarity = curr_similarity;
+                }
+            }
+            if(index_pred != train_label){
+            //add encoding + subtract encoding + append to 
+                for(int j = 0; j < DATA_OUT_DIM; j ++){
+                    model->class_hvs[train_label][j] +=  curr_enc[j];
+                    model->class_hvs[index_pred][j] -= curr_enc[j];
+                }
+                // count += 1;
+            }
+        
 }
 
 

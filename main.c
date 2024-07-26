@@ -183,21 +183,25 @@ int main() {
     const char *Ytrain_filename = "Ytrain.json";
     const char *Ytest_filename = "Ytest.json";
     const char *Projfection_filename = "projection.json";
+    const char *ClassHv_filename = "classEncoding.json";
     char *Xtrain_string =read_file(Xtrain_filename);
     char *Xtest_string =read_file(Xtest_filename);
     char *Ytrain_string =read_file(Ytrain_filename);
     char *Ytest_string =read_file(Ytest_filename);
     char *Projfection_string =read_file(Projfection_filename);
+    char *ClassHv_string =read_file(ClassHv_filename);
     cJSON *parse_Xtrain = parse_json(Xtrain_string);
     cJSON *parse_Xtest = parse_json(Xtest_string);
     cJSON *parse_Ytrain = parse_json(Ytrain_string);
     cJSON *parse_Ytest = parse_json(Ytest_string);
     cJSON *parse_Projection = parse_json(Projfection_string);
+    cJSON *parse_ClassHv = parse_json(ClassHv_string);
     float **Xtrain = process_2d_array(parse_Xtrain, &data_out, &data_in);
     float **Xtest = process_2d_array(parse_Xtest, &data_out, &data_in);
     int *Ytrain = process_1d_array(parse_Ytrain, &data_in);
     int *Ytest = process_1d_array(parse_Ytest, &data_out);
     float **Projection = process_2d_array(parse_Projection, &data_out, &data_in);
+    float **ClassHv = process_2d_array(parse_ClassHv, &data_out, &data_in);
     // for (int i = 0; i < TRAIN_AMOUNT; i ++) {
     //     for (int j = 0; j < DATA_IN_DIM; j ++) {
     //         model->X_train[i][j] = Xtrain[i][j];
@@ -217,9 +221,16 @@ int main() {
 
     // dump_init_hd_model(model, Xtrain, Xtest, Ytrain, Ytest);
     dump_init_hd_model_projection(model, Xtrain, Xtest, Ytrain, Ytest, Projection);
-    //dump_init_
 
 
+    //just test out the class hyper vector
+    //dump_trained_hd_model(model, Xtrain, Xtest, Ytrain, Ytest, Projection, ClassHv);
+    // float train_accuracy = test(model, 0, 0);
+    // printf("%f\n", train_accuracy);
+
+    
+    
+    //---------regular train and retrain cycle -----------------
     train(model);
     float train_accuracy = test(model, 0, 0);
     printf("%f\n", train_accuracy);
@@ -229,6 +240,10 @@ int main() {
     //accuracy += test(model, 0, use_higest_hv);
     //free the model
     free(model);
+
+
+
+
   
     //free the original data
     // free(all_data);
